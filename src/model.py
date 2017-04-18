@@ -102,7 +102,8 @@ class Diamond(Shape):
 
 class Target(Shape):
     def draw(self, canvas):
-        pass
+        pygame.draw.line(canvas, (0, 0, 0), (self.x, self.y), (self.x + self.w, self.y + self.w), 2)
+        pygame.draw.line(canvas, (0, 0, 0), (self.x + self.w, self.y), (self.x, self.y + self.w), 2)
 
 class Stage(Shape):
     def draw(self, canvas):
@@ -172,35 +173,52 @@ class Frame(object):
     def addGripper(self, x, y):
         if self.validPosition(x, y):
             self.gripper = Gripper(x, y)
+        else:
+            raise Exception("Gripper is outside frame")
 
     def addTable(self, x, y, w):
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
             self.table = Table(x, y, w)
+        else:
+            raise Exception("Table is outside frame")
 
     def addStage(self, x, y, w):
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
             self.stage = Stage(x, y, w)
+        else:
+            raise Exception("Stage is outside frame")
 
     def addTarget(self, x, y, w):
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
             self.target = Target(x, y, w)
+        else:
+            raise Exception("Target is outside frame")
 
     def addTaskObject(self, x, y, w, s, c):    
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
             self.tobj = shape_map[s](x, y, w, c)
+        else:
+            raise Exception("Task object is outside frame")
 
     def addObject(self, x, y, w, s, c):   
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
             self.objs.append(shape_map[s](x, y, w, c))
+        else:
+            raise Exception("Object is outside frame")
 
     def moveGripper(self, x, y):
         if self.active:
             self.gripper.setPosition(x, y)
 
             if gripper.hasObject():
+                # move object with gripper
                 obj = gripper.obj
                 w = obj.w
                 obj.setPosition(x-w/2, y-h/2)
+
+                # deactivate if near target
+                if self.near(self.gripper, self.target):
+                    self.deactivate()
 
     def openGripper(self):
         if self.active:
@@ -255,12 +273,48 @@ class ExperimentModel(object):
         self.i = None
  
     def addFrame(self, frame):
-        if self.frames == []:
+        if len(self.frames) == 0:
             self.i = 0
         self.frames.append(frame)
 
     def addFrameFromFile(self, f):
-        pass
+        if len(self.frames) == 0:
+            self.i = 0
+
+        d = yaml.load(open(f))
+        w = d['width']
+        h = d['height']
+        table_params = d['table']
+        stage_params = d['staging_area']
+        target_params = d['target']
+        tobj_params = d['task_object']
+        objs_params = d['objects']
+
+        if w != self.w or h != self.h:
+            raise Exception("Frame dimension does not agree with ExperimentModel")
+
+        frame = Frame(w, h)
+
+        x, y, w = table_params
+        frame.addTable(x, y, w)
+        
+        x, y, w = stage_params
+        frame.addStage(x, y, w)
+
+        x, y, w = target_params
+        frame.addTarget(x, y, w)
+
+        w, s, c = tobj_params
+        x = target.x + target.w/2 - w/2
+        y = target.y + target.w/2 - w/2
+        frame.addTaskObject(x, y, w, c)
+        
+        objs = []
+        for obj_params in objs_params:
+            x, y, w, s, c = obj_params
+            frame.addObject(x, y, w, c)
+
+        self.frames.append(frame)
 
     def upFrame(self):
         if self.i += 1 < len(self.frames)-1:
