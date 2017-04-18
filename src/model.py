@@ -1,21 +1,32 @@
 import pygame
+import numpy as np
 
-class Rectangle(object):
-    def __init__(self, name, x=None, y=None, w=None, h=None, c=None):
-        self.name = name
+shape_map = {0: Circle,
+             1: Square,
+             2: Triangle,
+             3: Star,
+             4: Diamond}
+color_map = {0: (0, 0, 1),
+             1: (1, 0, 0),
+             2: (0, 1, 0),
+             3: (),
+             4: (),
+             5: ()}
+
+
+class Shape(object):
+    def __init__(self, x=None, y=None, w=None, c=None):
         self.x = x
         self.y = y
         self.w = w
-        self.h = h
         self.c = c
 
     def setPosition(self, x, y):
         self.x = x
         self.y = y
 
-    def setSize(self, w, h):
+    def setWidth(self, w):
         self.w = w
-        self.h = h
 
     def setColor(self, c):
         self.c = c
@@ -23,37 +34,92 @@ class Rectangle(object):
     def getPosition(self):
         return (self.x, self.y)
 
-    def getSize(self):
-        return (self.w, self.h)
+    def getWidth(self):
+        return self.w
 
     def getColor(self):
         return self.c
 
     def draw(self, canvas):
-        pygame.draw.rect(canvas, self.c, [self.x, self.y, self.w, self.h])
-        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.h], 2)
+        pass
 
-class Table(Rectangle):
-    def __init__(self, name, x=None, y=None, w=None, h=None):
-        super(Table, self).__init__(name, x, y, w, h, c=(155, 85, 15))
+class Circle(Shape):
+    def draw(self, canvas):
+        r = self.w/2
+        pos = (self.x + r, self.y + r)
+        pygame.draw.circle(canvas, self.c, pos, r)
+        pygame.draw.circle(canvas, (0, 0, 0), pos, r, 2)
 
-class Bin(Rectangle):
-    def __init__(self, name, x, y, w, h):
-        super(Bin, self).__init__(name, x, y, w, h, c=(135, 135, 135))
+class Square(Shape):
+    def draw(self, canvas): 
+        pygame.draw.rect(canvas, self.c, [self.x, self.y, self.w, self.w])
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
 
-class Block(Rectangle):
-    def __init__(self, name, x, y, w, h, c):
-        super(Block, self).__init__(name, x, y, w, h, c)
+class Triangle(Shape):
+    def draw(self, canvas):
+        plist = [(self.x, self.y + self.w),
+                 (self.x + self.w, self.y + self.w),
+                 (self.x + self.w/2, self.y)]
+        pygame.draw.polygon(canvas, self.c, plist) 
+        pygame.draw.polygon(canvas, (0, 0, 0), plist, 2)
+
+class Star(Shape):
+    def draw(self, canvas):
+        r0 = self.w/2
+        radO = 0
+        r1 = self.w/6
+        rad1 = np.pi/5
+        drad = 2*np.pi/5 
+        plist = []
+
+        for i in range(10):
+            if i%2 == 0:
+                plist.append((r0*np.cos(rad0), r0*np.sin(rad0)))
+                rad0 += drad
+            else:
+                plist.append((r1*np.cos(rad1), r1*np.sin(rad1)))
+                rad1 += drad
+
+        plist = self._changeCoords(plsit)
+        pygame.draw.polygon(canvas, self.c, plist)
+        ptgame.draw.polygon(canvas, (0, 0, 0), plist, 2)
+
+    def _changeCoords(self, plist):
+        plist_new = []
+        for p in plist:
+            x, y = p
+            plist_new.append((self.x - y + self.w/2, self.y - x + self.w/2))
+        return plist_new
+
+class Diamond(Shape):
+    def draw(self, canvas):
+        plist = [(self.x + self.w/2, self.y),
+                 (self.x + 3*self.w/4, self.y + self.w/2),
+                 (self.x + self.w/2, self.y + self.w),
+                 (self.x + self.w/4, self.y + self.w//2)]
+        pygame.draw.polygon(canvas, self.c, plist)
+        pygame.draw.polygon(canvas, self.c, plist, 2)
+
+class Target(Shape):
+    def draw(self, canvas):
+        pass
+
+class Stage(Shape):
+    def draw(self, canvas):
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
+
+class Table(Shape):
+    def draw(self, canvas):
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
 
 class Gripper(object):
-    def __init__(self, name, x=None, y=None, r=20, width=5):
-        self.name = name        
+    def __init__(self, x=None, y=None, r=20, width=5):        
         self.x = x
         self.y = y
         self.r = r
         self.width = width
         self.state = 0
-        self.block = None
+        self.obj = None
 
     def setPosition(self, x, y):
         self.x = x
@@ -61,14 +127,14 @@ class Gripper(object):
 
     def openGripper(self):
         self.state = 0
-        self.block = None
+        self.obj = None
 
     def closeGripper(self):
         self.state = 1
 
-    def graspBlock(self, block):
+    def graspObject(self, obj):
         self.state = 1
-        self.block = block
+        self.obj = obj
 
     def closed(self):
         return True if self.state else False
@@ -76,8 +142,8 @@ class Gripper(object):
     def opened(self):
         return not self.closed()
 
-    def hasBlock(self):
-        return not self.block == None
+    def hasObject(self):
+        return not self.obj == None
 
     def draw(self, canvas):
         if self.state:
@@ -85,6 +151,137 @@ class Gripper(object):
         else:
             pygame.draw.circle(canvas, (0, 0, 0), (self.x, self.y), self.r, self.width)
         
+class Frame(object):
+    def __init__(self, w, h):
+        self.w = w
+        self.h = h
+        self.gripper = None
+        self.table = None
+        self.stage = None
+        self.target = None
+        self.tobj = None
+        self.objs = []
+        self.active = True
+
+    def near(self, gripper, obj):
+        return abs(gripper.x - (obj.x + obj.w/2)) < obj.w/2 + gripper.r and abs(gripper.y - (obj.y + obj.w/2)) < obj.w/2 + gripper.r
+
+    def validPosition(self, x, y):
+        return x > 0 or x < self.w or y > 0 or y < self.h
+
+    def addGripper(self, x, y):
+        if self.validPosition(x, y):
+            self.gripper = Gripper(x, y)
+
+    def addTable(self, x, y, w):
+        if self.validPosition(x, y) and self.validPosition(x+w, y+w):
+            self.table = Table(x, y, w)
+
+    def addStage(self, x, y, w):
+        if self.validPosition(x, y) and self.validPosition(x+w, y+w):
+            self.stage = Stage(x, y, w)
+
+    def addTarget(self, x, y, w):
+        if self.validPosition(x, y) and self.validPosition(x+w, y+w):
+            self.target = Target(x, y, w)
+
+    def addTaskObject(self, x, y, w, s, c):    
+        if self.validPosition(x, y) and self.validPosition(x+w, y+w):
+            self.tobj = shape_map[s](x, y, w, c)
+
+    def addObject(self, x, y, w, s, c):   
+        if self.validPosition(x, y) and self.validPosition(x+w, y+w):
+            self.objs.append(shape_map[s](x, y, w, c))
+
+    def moveGripper(self, x, y):
+        if self.active:
+            self.gripper.setPosition(x, y)
+
+            if gripper.hasObject():
+                obj = gripper.obj
+                w = obj.w
+                obj.setPosition(x-w/2, y-h/2)
+
+    def openGripper(self):
+        if self.active:
+            self.gripper.openGripper()
+
+    def closeGripper(self):
+        if self.active:
+            if self.near(self.gripper, self.tobj):
+                self.gripper.graspObject(self.tobj)
+            else:
+                self.gripper.closeGripper()
+
+    def getGripper(self):
+        return self.gripper
+
+    def getTable(self):
+        return self.table
+
+    def getStage(self):
+        return self.stage
+
+    def getTarget(self):
+        return self.target
+
+    def getTaskObject(self):
+        return self.tobj
+
+    def getObjects(self):
+        return self.objects
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
+
+    def draw(self, canvas):
+        if self.active:
+            self.gripper.draw(canvas)
+        self.table.draw(canvas)
+        self.stage.draw(canvas)
+        self.target.draw(canvas)
+        self.tobj.draw(canvas)
+        for obj in self.objs:
+            obj.draw(canvas)
+
+class ExperimentModel(object):
+    def __init__(self, w, h):
+        self.w = w
+        self.h = h
+        self.frames = []
+        self.i = None
+ 
+    def addFrame(self, frame):
+        if self.frames == []:
+            self.i = 0
+        self.frames.append(frame)
+
+    def addFrameFromFile(self, f):
+        pass
+
+    def upFrame(self):
+        if self.i += 1 < len(self.frames)-1:
+            self.i += 1
+
+    def downFrame(self):
+        if self.i -= 1 > 0:
+            self.i -= 1
+
+    def moveGripper(self, x, y):
+        self.frames[self.i].moveGripper(x, y)
+
+    def openGripper(self):
+        self.frame[self.i].openGripper()
+
+    def closeGripper(self):
+        self.frame[self.i].closeGripper()
+                
+    def draw(self, canvas):
+        self.frame[self.i].draw(canvas)
+
 
 class SortTaskModel(object):
     def __init__(self, w, h):
@@ -241,12 +438,4 @@ class SortTaskModel(object):
             
         for gripper in self.grippers.values():
             gripper.draw(canvas)
-    
-    
-    
-    
-    
-    
-    
-    
 
