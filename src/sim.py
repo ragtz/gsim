@@ -1,8 +1,141 @@
-from sorttasksim.src.model import *
+from gsim.src.model import *
 import numpy as np
 import pygame
 import random
 import sys          
+
+class GSim(object):
+    def __init__(self, width, height, frame_files):
+        pygame.init()
+        self.canvas = pygame.display.set_mode((width, height))
+        self.clock = pygame.time.Clock()
+
+        self.slide = 0
+        self.numFramesDone = 0
+        self.enter = False
+        self.recording = False
+
+        self.model = GSimModel(width, height)
+        for f in frame_files:
+            self.model.addFrameFromFile(f)
+
+        self.enterTxt = pygame.font.SysFont("monospace", 35).render("Press 'Enter' to continue", True, (0,0,0))
+
+    def clicked(self, obj, x, y):
+        if isinstance(obj, Shape) and not isinstance(obj, Target) and not isinstance(obj, Stage) and not isinstance(obj, Table):   
+            return x > obj.x and x < obj.x + obj.w and y > obj.y and y < obj.y + obj.w
+        elif isinstance(obj, Gripper):
+            return x > obj.x - obj.r and x < obj.x + obj.r and y > obj.y - obj.r and y < obj.y + obj.r
+        else:
+            return False
+
+    def done(self):
+        return self.numFramesDone == self.model.getNumFrames()
+
+    def next(self):
+        if self.slide == 0:
+            self.slide = 1
+
+        elif self.slide == 1:
+            if not self.model.getCurrentFrame().isActive():
+                self.model.upFrame()
+
+                if self.numFramesDone < self.model.getNumFrames():
+                    self.numFramesDone += 1
+
+                if self.done() and self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
+                    self.slide = 2
+
+    def back(self):
+        if self.slide == 1:
+            self.model.downFrame()
+
+        elif self.slide == 2:
+            self.slide = 1
+
+    def update(self):
+        self.canvas.fill((255,255,255))
+
+        if self.slide == 0:
+            pass
+        elif self.slide == 1:
+            self.model.draw(self.canvas)
+
+            if self.enter:
+                self.canvas.blit(self.enterTxt, (10, 10))
+        else:
+            pass        
+
+        pygame.display.flip()
+        
+    def run(self):
+        mouse_pos = (0, 0)
+        gripper_selected = True #False
+        t = 0
+
+        while True:
+            dt = self.clock.tick(50)
+            t += dt
+            print self.slide, self.numFramesDone, self.model.getCurrentFrameId()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+
+                elif event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+
+                    if gripper_selected:
+                        self.model.moveGripper(x, y)
+                        if not self.model.getCurrentFrame().isActive():
+                            #gripper_selected = False
+                            self.enter = True
+
+                            #if self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
+                            #    self.done = True
+
+                    mouse_pos = (x, y)
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+            
+                    if event.button == 1:
+                        if gripper_selected:
+                            self.model.closeGripper()
+                        elif self.clicked(self.model.getGripper(), x, y):
+                            gripper_selected = True
+                    #elif event.button == 3:
+                    #        gripper_selected = False
+
+                #elif event.type == pygame.MOUSEBUTTONUP:
+                #    self.model.openGripper()
+
+                elif event.type == pygame.KEYDOWN:
+                    x, y = mouse_pos
+
+                    if self.done():
+                        if event.key == pygame.K_RIGHT:
+                            self.next()
+
+                        elif event.key == pygame.K_LEFT:
+                            self.back()
+                    else:
+                        if event.key == pygame.K_RETURN:
+                            self.next()
+                            self.enter = False
+
+                        #if slide == 0:
+                        #    if event.key == pygame.K_RETURN:
+                        #        self.next()
+                        #elif slide == 1:
+                        #    if event.key == pygame.K_RETURN and not self.model.getCurrentFrame().isActive():
+                        #        self.next()
+                        #        self.enter = False
+                
+                        #if event.key == pygame.K_RETURN and not self.model.getCurrentFrame().isActive():
+                        #    self.next()
+                        #    self.enter = False
+
+                self.update()
 
 class SortTaskSim(object):
     def __init__(self, width=1000, height=1000):
@@ -184,7 +317,7 @@ class SortTaskSim(object):
                 self.update()
  
 if __name__ == '__main__':
-    sim = SortTaskSim()
+    sim = GSim(1300, 1000, ['../worlds/w1.yaml', '../worlds/w2.yaml', '../worlds/w3.yaml'])
 
     if len(sys.argv) == 1:
         sim.run()

@@ -1,18 +1,6 @@
 import pygame
+import yaml
 import numpy as np
-
-shape_map = {0: Circle,
-             1: Square,
-             2: Triangle,
-             3: Star,
-             4: Diamond}
-color_map = {0: (0, 0, 1),
-             1: (1, 0, 0),
-             2: (0, 1, 0),
-             3: (),
-             4: (),
-             5: ()}
-
 
 class Shape(object):
     def __init__(self, x=None, y=None, w=None, c=None):
@@ -48,12 +36,12 @@ class Circle(Shape):
         r = self.w/2
         pos = (self.x + r, self.y + r)
         pygame.draw.circle(canvas, self.c, pos, r)
-        pygame.draw.circle(canvas, (0, 0, 0), pos, r, 2)
+        pygame.draw.circle(canvas, (0, 0, 0), pos, r, 4)
 
 class Square(Shape):
     def draw(self, canvas): 
         pygame.draw.rect(canvas, self.c, [self.x, self.y, self.w, self.w])
-        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 4)
 
 class Triangle(Shape):
     def draw(self, canvas):
@@ -61,13 +49,13 @@ class Triangle(Shape):
                  (self.x + self.w, self.y + self.w),
                  (self.x + self.w/2, self.y)]
         pygame.draw.polygon(canvas, self.c, plist) 
-        pygame.draw.polygon(canvas, (0, 0, 0), plist, 2)
+        pygame.draw.polygon(canvas, (0, 0, 0), plist, 4)
 
 class Star(Shape):
     def draw(self, canvas):
         r0 = self.w/2
-        radO = 0
-        r1 = self.w/6
+        rad0 = 0
+        r1 = self.w/5
         rad1 = np.pi/5
         drad = 2*np.pi/5 
         plist = []
@@ -80,9 +68,9 @@ class Star(Shape):
                 plist.append((r1*np.cos(rad1), r1*np.sin(rad1)))
                 rad1 += drad
 
-        plist = self._changeCoords(plsit)
+        plist = self._changeCoords(plist)
         pygame.draw.polygon(canvas, self.c, plist)
-        ptgame.draw.polygon(canvas, (0, 0, 0), plist, 2)
+        pygame.draw.polygon(canvas, (0, 0, 0), plist, 4)
 
     def _changeCoords(self, plist):
         plist_new = []
@@ -98,23 +86,23 @@ class Diamond(Shape):
                  (self.x + self.w/2, self.y + self.w),
                  (self.x + self.w/4, self.y + self.w//2)]
         pygame.draw.polygon(canvas, self.c, plist)
-        pygame.draw.polygon(canvas, self.c, plist, 2)
+        pygame.draw.polygon(canvas, (0, 0, 0), plist, 4)
 
 class Target(Shape):
     def draw(self, canvas):
-        pygame.draw.line(canvas, (0, 0, 0), (self.x, self.y), (self.x + self.w, self.y + self.w), 2)
-        pygame.draw.line(canvas, (0, 0, 0), (self.x + self.w, self.y), (self.x, self.y + self.w), 2)
+        pygame.draw.line(canvas, (0, 0, 0), (self.x, self.y), (self.x + self.w, self.y + self.w), 10)
+        pygame.draw.line(canvas, (0, 0, 0), (self.x + self.w, self.y), (self.x, self.y + self.w), 10)
 
 class Stage(Shape):
     def draw(self, canvas):
-        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 4)
 
 class Table(Shape):
     def draw(self, canvas):
-        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 2)
+        pygame.draw.rect(canvas, (0, 0, 0), [self.x, self.y, self.w, self.w], 4)
 
 class Gripper(object):
-    def __init__(self, x=None, y=None, r=20, width=5):        
+    def __init__(self, x=None, y=None, r=40, width=5):        
         self.x = x
         self.y = y
         self.r = r
@@ -151,6 +139,18 @@ class Gripper(object):
             pygame.draw.circle(canvas, (0, 0, 0), (self.x, self.y), 2*self.r/3)
         else:
             pygame.draw.circle(canvas, (0, 0, 0), (self.x, self.y), self.r, self.width)
+
+shape_map = {0: Circle,
+             1: Square,
+             2: Triangle,
+             3: Star,
+             4: Diamond}
+color_map = {0: (0, 0, 255),
+             1: (255, 0, 0),
+             2: (0, 255, 0),
+             3: (255, 0, 255),
+             4: (255, 255, 0),
+             5: (0, 255, 255)}
         
 class Frame(object):
     def __init__(self, w, h):
@@ -165,7 +165,7 @@ class Frame(object):
         self.active = True
 
     def near(self, gripper, obj):
-        return abs(gripper.x - (obj.x + obj.w/2)) < obj.w/2 + gripper.r and abs(gripper.y - (obj.y + obj.w/2)) < obj.w/2 + gripper.r
+        return abs(gripper.x - (obj.x + obj.w/2)) < obj.w/10 and abs(gripper.y - (obj.y + obj.w/2)) < obj.w/10
 
     def validPosition(self, x, y):
         return x > 0 or x < self.w or y > 0 or y < self.h
@@ -196,13 +196,13 @@ class Frame(object):
 
     def addTaskObject(self, x, y, w, s, c):    
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
-            self.tobj = shape_map[s](x, y, w, c)
+            self.tobj = shape_map[s](x, y, w, color_map[c])
         else:
             raise Exception("Task object is outside frame")
 
     def addObject(self, x, y, w, s, c):   
         if self.validPosition(x, y) and self.validPosition(x+w, y+w):
-            self.objs.append(shape_map[s](x, y, w, c))
+            self.objs.append(shape_map[s](x, y, w, color_map[c]))
         else:
             raise Exception("Object is outside frame")
 
@@ -210,11 +210,11 @@ class Frame(object):
         if self.active:
             self.gripper.setPosition(x, y)
 
-            if gripper.hasObject():
+            if self.gripper.hasObject():
                 # move object with gripper
-                obj = gripper.obj
+                obj = self.gripper.obj
                 w = obj.w
-                obj.setPosition(x-w/2, y-h/2)
+                obj.setPosition(x-w/2, y-w/2)
 
                 # deactivate if near target
                 if self.near(self.gripper, self.target):
@@ -255,45 +255,58 @@ class Frame(object):
     def deactivate(self):
         self.active = False
 
+    def isActive(self):
+        return self.active
+
     def draw(self, canvas):
-        if self.active:
-            self.gripper.draw(canvas)
         self.table.draw(canvas)
         self.stage.draw(canvas)
         self.target.draw(canvas)
-        self.tobj.draw(canvas)
+
         for obj in self.objs:
             obj.draw(canvas)
 
-class ExperimentModel(object):
+        self.tobj.draw(canvas)
+
+        if self.active:
+            self.gripper.draw(canvas)
+
+
+class GSimModel(object):
     def __init__(self, w, h):
         self.w = w
         self.h = h
         self.frames = []
         self.i = None
+        self.n = 0
  
     def addFrame(self, frame):
         if len(self.frames) == 0:
             self.i = 0
         self.frames.append(frame)
+        self.n += 1
 
     def addFrameFromFile(self, f):
         if len(self.frames) == 0:
             self.i = 0
 
-        d = yaml.load(open(f))
-        w = d['width']
-        h = d['height']
-        table_params = d['table']
-        stage_params = d['staging_area']
-        target_params = d['target']
-        tobj_params = d['task_object']
-        objs_params = d['objects']
+        try:
+            d = yaml.load(open(f))
+            w = d['width']
+            h = d['height']
+            table_params = d['table']
+            stage_params = d['staging_area']
+            target_params = d['target']
+            tobj_params = d['task_object']
+            objs_params = d['objects']
+        except:
+            raise Exception("Parameters missing from world file")
 
         if w != self.w or h != self.h:
-            raise Exception("Frame dimension does not agree with ExperimentModel")
+            raise Exception("Frame dimension does not agree with GSimModel")
 
         frame = Frame(w, h)
+        frame.addGripper(9*w/10, h/10)
 
         x, y, w = table_params
         frame.addTable(x, y, w)
@@ -305,36 +318,52 @@ class ExperimentModel(object):
         frame.addTarget(x, y, w)
 
         w, s, c = tobj_params
-        x = target.x + target.w/2 - w/2
-        y = target.y + target.w/2 - w/2
-        frame.addTaskObject(x, y, w, c)
+        x = frame.getStage().x + frame.getStage().w/2 - w/2
+        y = frame.getStage().y + frame.getStage().w/2 - w/2
+        frame.addTaskObject(x, y, w, s, c)
         
         objs = []
         for obj_params in objs_params:
             x, y, w, s, c = obj_params
-            frame.addObject(x, y, w, c)
+            frame.addObject(x, y, w, s, c)
 
         self.frames.append(frame)
+        self.n += 1
+
+    def getFrame(self, i):
+        return self.frames[i]
+
+    def getCurrentFrame(self):
+        return self.getFrame(self.i)
+
+    def getCurrentFrameId(self):
+        return self.i
+
+    def getNumFrames(self):
+        return self.n
 
     def upFrame(self):
-        if self.i += 1 < len(self.frames)-1:
+        if self.i + 1 < len(self.frames):
             self.i += 1
 
     def downFrame(self):
-        if self.i -= 1 > 0:
+        if self.i - 1 >= 0:
             self.i -= 1
 
+    def getGripper(self):
+        return self.getCurrentFrame().getGripper()
+
     def moveGripper(self, x, y):
-        self.frames[self.i].moveGripper(x, y)
+        self.getCurrentFrame().moveGripper(x, y)
 
     def openGripper(self):
-        self.frame[self.i].openGripper()
+        self.getCurrentFrame().openGripper()
 
     def closeGripper(self):
-        self.frame[self.i].closeGripper()
+        self.getCurrentFrame().closeGripper()
                 
     def draw(self, canvas):
-        self.frame[self.i].draw(canvas)
+        self.getCurrentFrame().draw(canvas)
 
 
 class SortTaskModel(object):

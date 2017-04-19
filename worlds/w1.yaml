@@ -1,0 +1,15 @@
+#example yaml file for placement of red square to the right of the blue circle with 
+#two distractors: a green star and an orange diamond
+#(x,y) is top left corner
+shape_map: {0: circle, 1: square, 2: triangle, 3: star, 4: diamond}  #mapping from ids to shapes
+color_map: {0: blue, 1: red, 2: green, 3: purple, 4: yellow, 5: orange}  #mapping from ids to color_map
+width: 1300      #world size in x-dim
+height: 1000     #world size in y-dim
+objects:
+- [322, 537, 100, 0, 0]    #[x, y, width, shape, color] 
+- [620, 303, 100, 3, 2]
+- [175, 490, 100, 4, 5]
+staging_area: [1000, 100, 100]  #area where task_object starts [x,y,length]
+table: [100, 100, 800]          #area for other objects [x, y, length]
+target: [480, 602, 100]         #spot for user to place the object (put big red X here) [x,y,length]
+task_object: [100, 1, 1]        #object to place [length, shape, color]
