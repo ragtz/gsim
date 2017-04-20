@@ -70,7 +70,6 @@ class GSim(object):
         
     def run(self):
         mouse_pos = (0, 0)
-        gripper_selected = True #False
         t = 0
 
         while True:
@@ -84,14 +83,12 @@ class GSim(object):
                 elif event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
 
-                    if gripper_selected:
-                        self.model.moveGripper(x, y)
-                        if not self.model.getCurrentFrame().isActive():
-                            #gripper_selected = False
-                            self.enter = True
+                    self.model.moveGripper(x, y)
+                    if not self.model.getCurrentFrame().isActive():
+                        self.enter = True
 
-                            #if self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
-                            #    self.done = True
+                        #if self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
+                        #    self.done = True
 
                     mouse_pos = (x, y)
 
@@ -99,12 +96,7 @@ class GSim(object):
                     x, y = event.pos
             
                     if event.button == 1:
-                        if gripper_selected:
-                            self.model.closeGripper()
-                        elif self.clicked(self.model.getGripper(), x, y):
-                            gripper_selected = True
-                    #elif event.button == 3:
-                    #        gripper_selected = False
+                        self.model.closeGripper()
 
                 #elif event.type == pygame.MOUSEBUTTONUP:
                 #    self.model.openGripper()

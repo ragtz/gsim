@@ -268,8 +268,8 @@ class Frame(object):
 
         self.tobj.draw(canvas)
 
-        if self.active:
-            self.gripper.draw(canvas)
+        #if self.active:
+        #    self.gripper.draw(canvas)
 
 
 class GSimModel(object):
