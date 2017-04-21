@@ -2,7 +2,60 @@ from gsim.src.model import *
 import numpy as np
 import pygame
 import random
-import sys          
+import yaml
+import sys
+import os 
+
+def render_textrect(string, font, rect):
+    final_lines = []
+    requested_lines = string.splitlines()
+
+    for requested_line in requested_lines:
+        if font.size(requested_line)[0] > rect.width:
+            words = requested_line.split(' ')
+            
+            final_words = []
+            for word in words:
+                if font.size(word)[0] >= rect.width:
+                    accumulated_word = ''
+                    for c in word:
+                        test_word = accumulated_word + c
+                        if font.size(test_word)[0]+font.size('-')[0] < rect.width:
+                            accumulated_word = test_word
+                        else:
+                            final_words.append(accumulated_word+'-')
+                            accumulated_word = c
+                    final_words.append(accumulated_word)
+                else:
+                    final_words.append(word)
+            
+            accumulated_line = ''
+            for word in final_words:
+                test_line = accumulated_line + word + ' '
+                if font.size(test_line)[0] < rect.width:
+                    accumulated_line = test_line
+                else:
+                    final_lines.append(accumulated_line)
+                    accumulated_line = word + ' '
+            final_lines.append(accumulated_line)
+        else:
+            final_lines.append(requested_line)
+
+    surface = pygame.Surface(rect.size)
+    surface.fill((255,255,255))
+
+    accumulated_height = 0
+    for line in final_lines:
+        if accumulated_height + font.size(line)[1] >= rect.height:
+            return surface, False
+        
+        if line != '':
+            tempsurface = font.render(line, True, (0,0,0))
+            surface.blit(tempsurface, (0, accumulated_height))
+
+        accumulated_height += font.size(line)[1]
+
+    return surface, True
 
 class GSim(object):
     def __init__(self, width, height, frame_files):
@@ -13,13 +66,18 @@ class GSim(object):
         self.slide = 0
         self.numFramesDone = 0
         self.enter = False
-        self.recording = False
+        self.text = ''
+        self.maxTextLen = 50
 
         self.model = GSimModel(width, height)
+        self.frame_files = frame_files
         for f in frame_files:
             self.model.addFrameFromFile(f)
 
-        self.enterTxt = pygame.font.SysFont("monospace", 35).render("Press 'Enter' to continue", True, (0,0,0))
+        self.font = pygame.font.SysFont("monospace", 35)
+        self.instructionTxt = self.font.render("Place instructions for experiment here", True, (0,0,0))
+        self.enterTxt = self.font.render("Press 'Enter' to continue", True, (0,0,0))
+        self.textRect = pygame.Rect((100,100,500,500))
 
     def clicked(self, obj, x, y):
         if isinstance(obj, Shape) and not isinstance(obj, Target) and not isinstance(obj, Stage) and not isinstance(obj, Table):   
@@ -38,13 +96,13 @@ class GSim(object):
 
         elif self.slide == 1:
             if not self.model.getCurrentFrame().isActive():
+                if self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
+                    self.slide = 2
+
                 self.model.upFrame()
 
                 if self.numFramesDone < self.model.getNumFrames():
                     self.numFramesDone += 1
-
-                if self.done() and self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
-                    self.slide = 2
 
     def back(self):
         if self.slide == 1:
@@ -53,42 +111,78 @@ class GSim(object):
         elif self.slide == 2:
             self.slide = 1
 
+    def addText(self, event):
+        if self.slide == 2:
+            if event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            elif event.key == pygame.K_RETURN:
+                self.text += '\n'
+            else:
+                 self.text += event.unicode
+
+    def getUserPath(self, path, uid):
+        return path + '/user_' + str(uid)
+
+    def getExperimentPath(self, path, uid, eid):
+        return self.getUserPath(path, uid) + '/experiment_' + str(eid)
+
+    def mkdirs(self, path, uid, eid):
+        e_path = self.getExperimentPath(path, uid, eid)
+        if not os.path.exists(e_path):
+            os.makedirs(e_path)
+
+    def saveWorlds(self, path, uid, eid):
+        filename = self.getExperimentPath(path, uid, eid) + '/worlds.yaml'
+        yaml.dump({'worlds': self.frame_files}, open(filename, 'w'))
+
+    def saveMotion(self, path, uid, eid):
+        filename = self.getExperimentPath(path, uid, eid) + '/motion.npy'
+        np.save(filename, self.model.getMotion())
+
+    def saveText(self, path, uid, eid):
+        filename = self.getExperimentPath(path, uid, eid) + '/task.txt'
+        f = open(filename, 'w')
+        f.write(self.text)
+
     def update(self):
         self.canvas.fill((255,255,255))
 
         if self.slide == 0:
-            pass
+            self.canvas.blit(self.instructionTxt, (50, 50))
+            self.canvas.blit(self.enterTxt, (50, 250))
         elif self.slide == 1:
             self.model.draw(self.canvas)
 
             if self.enter:
                 self.canvas.blit(self.enterTxt, (10, 10))
         else:
-            pass        
+            rendered_text, fits = render_textrect(self.text, self.font, self.textRect)
+            self.canvas.blit(rendered_text, self.textRect.topleft)
 
         pygame.display.flip()
         
-    def run(self):
+    def run(self, path, uid, eid):
         mouse_pos = (0, 0)
         t = 0
 
         while True:
             dt = self.clock.tick(50)
             t += dt
-            print self.slide, self.numFramesDone, self.model.getCurrentFrameId()
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.mkdirs(path, uid, eid)
+                    self.saveWorlds(path, uid, eid)
+                    self.saveMotion(path, uid, eid)
+                    self.saveText(path, uid, eid)
                     sys.exit()
 
                 elif event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
 
                     self.model.moveGripper(x, y)
-                    if not self.model.getCurrentFrame().isActive():
+                    if not self.done() and not self.model.getCurrentFrame().isActive():
                         self.enter = True
-
-                        #if self.model.getCurrentFrameId() == self.model.getNumFrames()-1:
-                        #    self.done = True
 
                     mouse_pos = (x, y)
 
@@ -98,213 +192,22 @@ class GSim(object):
                     if event.button == 1:
                         self.model.closeGripper()
 
-                #elif event.type == pygame.MOUSEBUTTONUP:
-                #    self.model.openGripper()
-
                 elif event.type == pygame.KEYDOWN:
                     x, y = mouse_pos
-
+                    
                     if self.done():
                         if event.key == pygame.K_RIGHT:
                             self.next()
 
                         elif event.key == pygame.K_LEFT:
                             self.back()
+
+                        else:
+                            self.addText(event)
                     else:
                         if event.key == pygame.K_RETURN:
                             self.next()
                             self.enter = False
-
-                        #if slide == 0:
-                        #    if event.key == pygame.K_RETURN:
-                        #        self.next()
-                        #elif slide == 1:
-                        #    if event.key == pygame.K_RETURN and not self.model.getCurrentFrame().isActive():
-                        #        self.next()
-                        #        self.enter = False
-                
-                        #if event.key == pygame.K_RETURN and not self.model.getCurrentFrame().isActive():
-                        #    self.next()
-                        #    self.enter = False
-
-                self.update()
-
-class SortTaskSim(object):
-    def __init__(self, width=1000, height=1000):
-        pygame.init()
-        self.canvas = pygame.display.set_mode((width, height))
-        self.clock = pygame.time.Clock()
-        self.recording = False
-        
-        self.model = SortTaskModel(width, height)
-        self.model.addGripper('gripper', 850, 800)
-        self.model.addTable('table', 300, 700, 400, 200)
-        self.model.addBin('red', 200, 400, 50, 50)
-        self.model.addBin('green', 475, 200, 50, 50)
-        self.model.addBin('blue', 750, 400, 50, 50)
-
-        self.gripperStart = Rectangle('start', 800, 750, 100, 100, (255, 255, 255))
-
-        self.recordTxt = pygame.font.SysFont("monospace", 35).render("Recording...", True, (0,0,0))
-        self.redTxt = pygame.font.SysFont("monospace", 25).render("Red", True, (255, 0, 0))
-        self.greenTxt = pygame.font.SysFont("monospace", 25).render("Green", True, (0, 255, 0))
-        self.blueTxt = pygame.font.SysFont("monospace", 25).render("Blue", True, (0, 0 , 255))
-        self.startTxt = pygame.font.SysFont("monospace", 25).render("Start", True, (0, 0 , 0))
-
-        self.data = []
-        self.numTraj = 0
-
-    def clicked(self, obj, x, y):
-        if isinstance(obj, Block):
-            return x > obj.x and x < obj.x + obj.w and y > obj.y and y < obj.y + obj.h
-        elif isinstance(obj, Gripper):
-            return x > obj.x - obj.r and x < obj.x + obj.r and y > obj.y - obj.r and y < obj.y + obj.r
-        else:
-            return False
-
-    def record(self, t):
-        if self.model.numBlocks() > 0:     
-            gripper = self.model.getGripper('gripper')
-            block = self.model.getBlock('b0')
-
-            x_g = gripper.x
-            y_g = gripper.y
-            s_g = gripper.state
-            x_b = block.x + block.w/2
-            y_b = block.y + block.h/2
-            (r_b, g_b, b_b) = block.c
-
-            idx = self.numTraj-1
-
-            self.data[idx]['t'].append(t)
-            self.data[idx]['gripper'].append([x_g, y_g, s_g])
-            self.data[idx]['block'].append([x_b, y_b, r_b, g_b, b_b])
-
-    def saveData(self, filename):
-        if not filename == None:
-            for i in range(len(self.data)):
-                self.data[i]['t'] = np.array(self.data[i]['t'])
-                self.data[i]['gripper'] = np.array(self.data[i]['gripper'])
-                self.data[i]['block'] = np.array(self.data[i]['block'])
-
-            np.save(filename, np.array(self.data, dtype=np.dtype(object)))
-    
-    def sampleColor(self, mean, std_dev):
-        (r, g, b) = mean
-
-        r = np.clip(random.gauss(r, std_dev), 0, 255)
-        g = np.clip(random.gauss(g, std_dev), 0, 255)
-        b = np.clip(random.gauss(b, std_dev), 0, 255)
-
-        return (r, g, b)
-
-    def sampleRed(self):
-        return self.sampleColor((255, 0, 0), 50)
-
-    def sampleGreen(self):
-        return self.sampleColor((0, 255, 0), 50)
-
-    def sampleBlue(self):
-        return self.sampleColor((0, 0, 255), 50)
-    
-    def update(self):
-        self.canvas.fill((255,255,255))
-
-        redBin = self.model.getBin('red')
-        greenBin = self.model.getBin('green')
-        blueBin = self.model.getBin('blue')
-
-        x, y = redBin.getPosition()
-        w, h = redBin.getSize()
-        (tw, th) = (self.redTxt.get_width(), self.redTxt.get_height())
-        self.canvas.blit(self.redTxt, (x+(w-tw)/2, y+h+th/2))
-
-        x, y = greenBin.getPosition()
-        w, h = greenBin.getSize()
-        (tw, th) = (self.greenTxt.get_width(), self.greenTxt.get_height())
-        self.canvas.blit(self.greenTxt, (x+(w-tw)/2, y+h+th/2))
-
-        x, y = blueBin.getPosition()
-        w, h = blueBin.getSize()
-        (tw, th) = (self.blueTxt.get_width(), self.blueTxt.get_height())
-        self.canvas.blit(self.blueTxt, (x+(w-tw)/2, y+h+th/2))
-
-        x, y = self.gripperStart.getPosition()
-        w, h = self.gripperStart.getSize()
-        (tw, th) = (self.startTxt.get_width(), self.startTxt.get_height())
-        self.canvas.blit(self.startTxt, (x+(w-tw)/2, y+h+th/2))
-
-        self.gripperStart.draw(self.canvas)
-        self.model.draw(self.canvas)
-
-        if self.recording:
-            self.canvas.blit(self.recordTxt, (10, 10))
-
-        pygame.display.flip()
-        
-    def run(self, filename=None):
-        mouse_pos = None
-        gripper_selected = False
-        t = 0
-        
-        while True:
-            dt = self.clock.tick(50)
-            t += dt
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    if len(self.data) > 0:
-                        self.saveData(filename)
-                    sys.exit()
-                    
-                elif event.type == pygame.MOUSEMOTION:
-                    x, y = event.pos
-
-                    if gripper_selected:
-                        self.model.moveGripper('gripper', x, y)
-
-                    mouse_pos = (x, y)
-                    
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-
-                    if event.button == 1:
-                        if gripper_selected:
-                            self.model.closeGripper('gripper')
-                        elif self.clicked(self.model.getGripper('gripper'), x, y):
-                            gripper_selected = True
-                    elif event.button == 3:
-                        gripper_selected = False
-
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    self.model.openGripper('gripper')
-          
-                elif event.type == pygame.KEYDOWN: 
-                    x, y = mouse_pos
-       
-                    if event.key == pygame.K_r and self.model.numBlocks() == 0:
-                        #self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, (255, 0, 0))
-                        self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, self.sampleRed())
-                        
-                    elif event.key == pygame.K_g and self.model.numBlocks() == 0:
-                        #self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, (0, 255, 0))
-                        self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, self.sampleGreen())
-                        
-                    elif event.key == pygame.K_b and self.model.numBlocks() == 0:
-                        #self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, (0, 0, 255))
-                        self.model.addBlock('b'+str(self.model.numBlocks()), x, y, 15, 15, self.sampleBlue())
-
-                    elif event.key == pygame.K_c:
-                        self.model.removeBlocks()
-
-                    elif event.key == pygame.K_SPACE and self.model.numBlocks() >= 0:
-                        self.recording = not self.recording
-                        if self.recording:
-                            self.data.append({'t': [], 'gripper': [], 'block': []})
-                            self.numTraj += 1
-                
-                if self.recording:
-                    self.record(t)
 
                 self.update()
  
@@ -312,7 +215,7 @@ if __name__ == '__main__':
     sim = GSim(1300, 1000, ['../worlds/w1.yaml', '../worlds/w2.yaml', '../worlds/w3.yaml'])
 
     if len(sys.argv) == 1:
-        sim.run()
+        sim.run('../data', 0, 1)
     else:
         sim.run(sys.argv[1])
 

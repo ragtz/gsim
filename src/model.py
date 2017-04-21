@@ -163,9 +163,13 @@ class Frame(object):
         self.tobj = None
         self.objs = []
         self.active = True
+        self.motion = []
 
-    def near(self, gripper, obj):
-        return abs(gripper.x - (obj.x + obj.w/2)) < obj.w/10 and abs(gripper.y - (obj.y + obj.w/2)) < obj.w/10
+    def nearTaskObject(self):
+        return abs(self.gripper.x - (self.tobj.x + self.tobj.w/2)) < self.tobj.w and abs(self.gripper.y - (self.tobj.y + self.tobj.w//2)) < self.tobj.w
+
+    def nearTarget(self):
+        return abs(self.gripper.x - (self.target.x + self.target.w/2)) < self.target.w/10 and abs(self.gripper.y - (self.target.y + self.target.w/2)) < self.target.w/10
 
     def validPosition(self, x, y):
         return x > 0 or x < self.w or y > 0 or y < self.h
@@ -217,8 +221,11 @@ class Frame(object):
                 obj.setPosition(x-w/2, y-w/2)
 
                 # deactivate if near target
-                if self.near(self.gripper, self.target):
+                if self.nearTarget():
                     self.deactivate()
+
+                # record motion data
+                self.motion.append([x, y])
 
     def openGripper(self):
         if self.active:
@@ -226,7 +233,7 @@ class Frame(object):
 
     def closeGripper(self):
         if self.active:
-            if self.near(self.gripper, self.tobj):
+            if self.nearTaskObject():
                 self.gripper.graspObject(self.tobj)
             else:
                 self.gripper.closeGripper()
@@ -248,6 +255,9 @@ class Frame(object):
 
     def getObjects(self):
         return self.objects
+
+    def getMotion(self):
+        return self.motion
 
     def activate(self):
         self.active = True
@@ -342,6 +352,12 @@ class GSimModel(object):
     def getNumFrames(self):
         return self.n
 
+    def getMotion(self):
+        motion = []
+        for i in range(self.getNumFrames()):
+            motion.append(self.getFrame(i).getMotion())
+        return np.array(motion)
+
     def upFrame(self):
         if self.i + 1 < len(self.frames):
             self.i += 1
@@ -364,161 +380,4 @@ class GSimModel(object):
                 
     def draw(self, canvas):
         self.getCurrentFrame().draw(canvas)
-
-
-class SortTaskModel(object):
-    def __init__(self, w, h):
-        self.w = w
-        self.h = h
-        self.tables = {}
-        self.bins = {}
-        self.blocks = {}
-        self.grippers = {}
-        
-    def dist(self, x1, y1, x2, y2):
-        return ((x1-x2)**2 + (y1-y2)**2)**0.5
-        
-    def near(self, gripper, block):
-        return abs(gripper.x - (block.x + block.w/2)) < block.w/2 + gripper.r and abs(gripper.y - (block.y + block.h/2)) < block.h/2 + gripper.r
-
-    def validPosition(self, x, y):
-        return x > 0 or x < self.w or y > 0 or y < self.h
-
-    def addTable(self, name, x, y, w, h):
-        if self.validPosition(x, y) and self.validPosition(x+w, y+h):
-            self.tables[name] = Table(name, x, y, w, h)
-
-    def addBin(self, name, x, y, w, h):
-        if self.validPosition(x, y) and self.validPosition(x+w, y+h):
-            self.bins[name] = Bin(name, x, y, w, h)
-
-    def addBlock(self, name, x, y, w, h, c):
-        if self.validPosition(x, y) and self.validPosition(x+w, y+h):
-            self.blocks[name] = Block(name, x, y, w, h, c)
-    
-    def addGripper(self, name, x, y):
-        if self.validPosition(x, y):
-            self.grippers[name] = Gripper(name, x, y)
-
-    def removeTable(self, name):
-        del self.tables[name]
-
-    def removeBin(self, name):
-        del self.bins[name]
-
-    def removeBlock(self, name):
-        del self.blocks[name]
-
-    def removeGripper(self, name):
-        del self.grippers[name]
-
-    def removeTables(self):
-        self.tables = {}
-
-    def removeBins(self):
-        self.bins = {}
-
-    def removeBlocks(self):
-        self.blocks = {}
-
-    def removeGrippers(self):
-        self.grippers = {}
-
-    def numTables(self):
-        return len(self.tables)
-
-    def numBins(self):
-        return len(self.bins)
-
-    def numBlocks(self):
-        return len(self.blocks)
-
-    def numGrippers(self):
-        return len(self.grippers)
-       
-    def getTable(self, name):
-        if name in self.tables:
-            return self.tables[name]
-        else:
-            return None
-
-    def getTables(self):
-        return self.tables.values()
-
-    def getBin(self, name):
-        if name in self.bins:
-            return self.bins[name]
-        else:
-            return None
-
-    def getBins(self):
-        return self.bins.values()
-
-    def getBlock(self, name):
-        if name in self.blocks:
-            return self.blocks[name]
-        else:
-            return None
- 
-    def getBlocks(self):
-        return self.blocks.values()
-        
-    def getGripper(self, name):
-        if name in self.grippers:
-            return self.grippers[name]
-        else:
-            return None
-
-    def getGrippers(self):
-        return self.grippers.values()
-
-    def moveGripper(self, name, x, y):
-        if name in self.grippers:
-            gripper = self.grippers[name]
-            gripper.setPosition(x, y)
-
-            if gripper.hasBlock():
-                block = gripper.block
-                w = block.w
-                h = block.h
-                block.setPosition(x-w/2, y-h/2)
-
-    def moveBlock(self, name, x, y):
-        if name in self.blocks:
-            self.blocks[name].setPosition(x, y)
-
-    def openGripper(self, name):
-        if name in self.grippers:
-            self.grippers[name].openGripper()
-
-    def closeGripper(self, name):
-        if name in self.grippers:
-            gripper = self.grippers[name]
-
-            nearestBlock = None
-            minDist = float('inf')
-
-            for block in self.getBlocks():
-                dist = self.dist(gripper.x, gripper.y, block.x, block.y)
-                if dist < minDist:
-                    nearestBlock = block
-                    minDist = dist
-            
-            if not nearestBlock == None and self.near(gripper, nearestBlock):
-                gripper.graspBlock(nearestBlock)
-            else:
-                gripper.closeGripper()
-                
-    def draw(self, canvas):
-        for table in self.tables.values():
-            table.draw(canvas)
-            
-        for bbin in self.bins.values():
-            bbin.draw(canvas)
-            
-        for block in self.blocks.values():
-            block.draw(canvas)
-            
-        for gripper in self.grippers.values():
-            gripper.draw(canvas)
 
