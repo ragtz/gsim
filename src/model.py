@@ -257,7 +257,7 @@ class Frame(object):
         return self.objects
 
     def getMotion(self):
-        return self.motion
+        return np.array(self.motion)
 
     def activate(self):
         self.active = True
