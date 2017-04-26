@@ -271,11 +271,11 @@ class Frame(object):
     def draw(self, canvas):
         self.table.draw(canvas)
         self.stage.draw(canvas)
-        self.target.draw(canvas)
-
+        
         for obj in self.objs:
             obj.draw(canvas)
 
+        self.target.draw(canvas)
         self.tobj.draw(canvas)
 
         #if self.active:
