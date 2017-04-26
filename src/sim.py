@@ -70,7 +70,7 @@ class GSim(object):
         self.maxTextLen = 50
 
         self.instructionsText = "  You will be teaching a robot to perform a simple task by demonstrating it in simulation and providing a written instruction. Specifically:\n\n - The task will consist of moving a shape to a specified location.\n\n - The shape to be moved will be on the right, and the location to move it to will be marked by an 'x'.\n\n - Upon completion of the demonstrations, you will be asked to provide a simple one-sentence instruction that you believe would teach a robot to complete the task. Assume the robot has the intelligence of a child.\n\n - The robot cannot see the 'x' in the scenes, so do not reference it in your sentence. The robot can see all of the shapes.\n\n - There is no correct sentence to write down. Just write a sentence that you think would teach a robot how to complete the task you just demonstrated.\n\n\n               Press 'Enter' to continue"
-        self.taskInstructionText = "  Please provide a simple one-sentence instruction that you believe would teach a robot to complete the task. Assume the robot has the intelligence of a child."
+        self.taskInstructionText = "  Please provide a simple one-sentence instruction that you believe would teach a robot to complete the task. Assume the robot has the intelligence of a child.\n\nYou can use the left and right arrow keys to view the scenes. Close the window when you are done."
 
         self.model = GSimModel(width, height)
         self.frame_files = frame_files
@@ -81,8 +81,8 @@ class GSim(object):
         self.enterText = self.font.render("Press 'Enter' to continue", True, (0,0,0))
 
         self.instructionsRect = pygame.Rect((width/10, height/10, 8*width/10, 8*height/10))
-        self.taskInstructionRect = pygame.Rect((width/10, height/10, 8*width/10, 2*height/10))
-        self.textRect = pygame.Rect((width/10, 2.5*height/10, 8*width/10, height/10))
+        self.taskInstructionRect = pygame.Rect((width/10, height/10, 8*width/10, 3*height/10))
+        self.textRect = pygame.Rect((width/10, 3.5*height/10, 8*width/10, height/10))
 
     def clicked(self, obj, x, y):
         if isinstance(obj, Shape) and not isinstance(obj, Target) and not isinstance(obj, Stage) and not isinstance(obj, Table):   
@@ -222,10 +222,23 @@ class GSim(object):
                 self.update()
  
 if __name__ == '__main__':
+    if len(sys.argv) >= 5:
+        worlds_path = sys.argv[1]
+        save_path = sys.argv[2]
+        uid = int(sys.argv[3])
+        eid = int(sys.argv[4])
+
+        worlds = yaml.load(open(worlds_path))['worlds']
+        worlds = ['../worlds/'+w for w in worlds]
+
+        sim = GSim(1300, 1000, worlds)
+        sim.run(save_path, uid, eid)
+
+    '''
     sim = GSim(1300, 1000, ['../worlds/w1.yaml', '../worlds/w2.yaml', '../worlds/w3.yaml'])
 
     if len(sys.argv) == 1:
         sim.run('../data', 0, 1)
     else:
         sim.run(sys.argv[1])
-
+    '''

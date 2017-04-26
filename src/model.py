@@ -299,9 +299,13 @@ class GSimModel(object):
     def addFrameFromFile(self, f):
         if len(self.frames) == 0:
             self.i = 0
-
+        
         try:
             d = yaml.load(open(f))
+        except:
+            raise Exception("Cannot open file " + f)
+
+        try:
             w = d['width']
             h = d['height']
             table_params = d['table']
