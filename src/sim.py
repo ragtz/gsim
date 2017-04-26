@@ -69,15 +69,20 @@ class GSim(object):
         self.text = ''
         self.maxTextLen = 50
 
+        self.instructionsText = "  You will be teaching a robot to perform a simple task by demonstrating it in simulation and providing a written instruction. Specifically:\n\n - The task will consist of moving a shape to a specified location.\n\n - The shape to be moved will be on the right, and the location to move it to will be marked by an 'x'.\n\n - Upon completion of the demonstrations, you will be asked to provide a simple one-sentence instruction that you believe would teach a robot to complete the task. Assume the robot has the intelligence of a child.\n\n - The robot cannot see the 'x' in the scenes, so do not reference it in your sentence. The robot can see all of the shapes.\n\n - There is no correct sentence to write down. Just write a sentence that you think would teach a robot how to complete the task you just demonstrated.\n\n\n               Press 'Enter' to continue"
+        self.taskInstructionText = "  Please provide a simple one-sentence instruction that you believe would teach a robot to complete the task. Assume the robot has the intelligence of a child."
+
         self.model = GSimModel(width, height)
         self.frame_files = frame_files
         for f in frame_files:
             self.model.addFrameFromFile(f)
 
-        self.font = pygame.font.SysFont("monospace", 35)
-        self.instructionTxt = self.font.render("Place instructions for experiment here", True, (0,0,0))
-        self.enterTxt = self.font.render("Press 'Enter' to continue", True, (0,0,0))
-        self.textRect = pygame.Rect((100,100,500,500))
+        self.font = pygame.font.SysFont("monospace", 30)
+        self.enterText = self.font.render("Press 'Enter' to continue", True, (0,0,0))
+
+        self.instructionsRect = pygame.Rect((width/10, height/10, 8*width/10, 8*height/10))
+        self.taskInstructionRect = pygame.Rect((width/10, height/10, 8*width/10, 2*height/10))
+        self.textRect = pygame.Rect((width/10, 2.5*height/10, 8*width/10, height/10))
 
     def clicked(self, obj, x, y):
         if isinstance(obj, Shape) and not isinstance(obj, Target) and not isinstance(obj, Stage) and not isinstance(obj, Table):   
@@ -148,17 +153,22 @@ class GSim(object):
         self.canvas.fill((255,255,255))
 
         if self.slide == 0:
-            self.canvas.blit(self.instructionTxt, (50, 50))
-            self.canvas.blit(self.enterTxt, (50, 250))
+            rendered_text, fits = render_textrect(self.instructionsText, self.font, self.instructionsRect)
+            self.canvas.blit(rendered_text, self.instructionsRect.topleft)
         elif self.slide == 1:
             self.model.draw(self.canvas)
 
             if self.enter:
-                self.canvas.blit(self.enterTxt, (10, 10))
+                self.canvas.blit(self.enterText, (10, 10))
         else:
+            rendered_text, fits = render_textrect(self.taskInstructionText, self.font, self.taskInstructionRect)
+            self.canvas.blit(rendered_text, self.taskInstructionRect.topleft)
+
+            x, y, w, h = self.textRect.x, self.textRect.y, self.textRect.w, self.textRect.h
             rendered_text, fits = render_textrect(self.text, self.font, self.textRect)
             self.canvas.blit(rendered_text, self.textRect.topleft)
-
+            pygame.draw.rect(self.canvas, (0,0,0), [x-10, y-10, w+20, h+20], 1)
+            
         pygame.display.flip()
         
     def run(self, path, uid, eid):
