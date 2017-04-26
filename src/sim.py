@@ -187,21 +187,6 @@ class GSim(object):
                     self.saveText(path, uid, eid)
                     sys.exit()
 
-                elif event.type == pygame.MOUSEMOTION:
-                    x, y = event.pos
-
-                    self.model.moveGripper(x, y)
-                    if not self.done() and not self.model.getCurrentFrame().isActive():
-                        self.enter = True
-
-                    mouse_pos = (x, y)
-
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    x, y = event.pos
-            
-                    if event.button == 1:
-                        self.model.closeGripper()
-
                 elif event.type == pygame.KEYDOWN:
                     x, y = mouse_pos
                     
@@ -218,6 +203,22 @@ class GSim(object):
                         if event.key == pygame.K_RETURN:
                             self.next()
                             self.enter = False
+
+                if self.slide == 1:
+                    if event.type == pygame.MOUSEMOTION:
+                        x, y = event.pos
+
+                        self.model.moveGripper(x, y)
+                        if not self.done() and not self.model.getCurrentFrame().isActive():
+                            self.enter = True
+
+                        mouse_pos = (x, y)
+
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        x, y = event.pos
+            
+                        if event.button == 1:
+                            self.model.closeGripper()
 
                 self.update()
  
