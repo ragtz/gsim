@@ -1,1 +1,2 @@
-Place the blue triangle below the purple triange.
+Place the blue triangle below the purple triangle.
+# Place the blue triangle below the purple triange.
