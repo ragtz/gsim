@@ -1,0 +1,254 @@
+cov:
+  0: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - &id001 !!python/name:numpy.ndarray ''
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      NnAdk6DfqEDsbA+poUFVQO5sD6mhQVVAiorXr66phUA=
+  1: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      YhyX4GLfkEBxvO4awDdjwHG87hrAN2PAc0YnQaJbqUA=
+  2: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      SCJEmEZOp0DqiYnLy5xmQOqJicvLnGZAw++a7o4tiEA=
+  3: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      5Whb2nmI10BgEjrN8a6iwGASOs3xrqLAh6k7Otmi0UA=
+  4: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      8mKXrNpH1UDrKWuK4Sm2QOwpa4rhKbZA9Z8cE5s+3EA=
+  5: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      kQzpCm5Bh0B06G2ApkdgwHbobYCmR2DAz9RrTTbmpkA=
+  6: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      8nBIUK9u1kDBLu2sIJGzQMIu7awgkbNAcdNPZEnf2EA=
+  7: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      +PbVRFS4R0CKZvzxpD8QwIpm/PGkPxDAWg0nNIqrQ0A=
+  8: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2, 2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      PhoVAk9m2kDu3cqOQ+y1wO7dyo5D7LXAirFYq2fW2kA=
+mu:
+  0: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      wx/TA6t7b0DpQpJrPNFPQA==
+  1: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      RsYC1UMNTkBjZfKLWthvQA==
+  2: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      MLXk7p1UYcAqN12Nv5BNQA==
+  3: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      vSDnuXIVYsBH8y/iN9tpwA==
+  4: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      bK+Abc8NaMA75g+x7hptQA==
+  5: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      nQb0SYG3TkDQy1kKiblhwA==
+  6: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      KWSWjemLcUARDa20KnBkwA==
+  7: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      ySeG1em+SUAezof+KtZIQA==
+  8: !!python/object/apply:numpy.core.multiarray._reconstruct
+    args:
+    - *id001
+    - !!python/tuple [0]
+    - b
+    state: !!python/tuple
+    - 1
+    - !!python/tuple [2]
+    - !!python/object/apply:numpy.dtype
+      args: [f8, 0, 1]
+      state: !!python/tuple [3, <, null, null, null, -1, -1, 0]
+    - false
+    - !!binary |
+      JbHLbMbBcECIUe6P8l1yQA==
