@@ -18,6 +18,18 @@ def getYamlFile(user_id, experiment_id, demo_num):
     meta_files = getYamlData(yaml_meta_filename)
     return meta_files['worlds'][demo_num]
 
+
+def getFeatureCoordinates(shape_color, yaml_file):
+    data = getYamlData(yaml_file)
+    objects = data['objects']
+    obj_coord = []
+    for obj in objects:
+        obj_features = (obj[3],obj[4])
+        if obj_features == shape_color:
+            return [obj[0], obj[1]]
+    print "Couldn't find the object specified by the shape_color feature tuple"
+    return 
+
 """hard coded to get all user info except for last experiment
     this corresponds to 80% train 20% test
 """  
