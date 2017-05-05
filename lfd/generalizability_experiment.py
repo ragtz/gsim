@@ -5,6 +5,13 @@ import matplotlib as mpl
 
 import lfd
 
+""""
+This is a simple experiment setup for testing nlp+lfd with lfd.
+The lfd stuff is connected, but the nlp+lfd needs to be added.
+
+""""
+
+
 
 """compute the average distance error over worlds specified by user_id, exp_id, max_demos:total_demos"""
 def averageDistanceError(shape_color, displacement, user_id, exp_id, max_demos, total_demos):
@@ -23,6 +30,9 @@ def averageDistanceError(shape_color, displacement, user_id, exp_id, max_demos, 
     return sum_errors / float(total_demos - max_demos)  
 
     
+#TODO compute average over cosine distance between predicted vector and ground truth displacement 
+def averageCosineDistanceError(shape_color, displacement, user_id, exp_id, max_demos, total_demos):
+    pass
     
 
 
@@ -38,21 +48,26 @@ def main():
     #training code here
     ######################
 
+    #learn groundings with user_exp_train as train set
 
     ######################
-    #testing code here
+    #testing code
     ######################
 
     #matrix of zeros where each row is new test case and cols are ave errors for learning from 1:max_demos demonstrations
     lfd_errors = np.zeros((len(user_exp_test), max_demos))  
+    nlp_errors = np.zeros((len(user_exp_test), max_demos))  
     for i in range(len(user_exp_test)):
         user_id, exp_id = user_exp_test[i]
         for n_demos in range(1,max_demos+1):
             #get best guess of landmark and displacement
             lfd_shape_color, lfd_displacement = lfd.getMostLikelyLandmarkDisplacement(user_id, exp_id, n_demos)
+            #TODO: nlp_shape_color, nlp_displacement = nlp_get_landmark_displacement(user_id, exp_id, n_demos)
             #compute accuracy over a test demo specified by demo_id
             for demo_id in range(max_demos, total_demos):
                 lfd_errors[i, n_demos-1] = averageDistanceError(lfd_shape_color, lfd_displacement, user_id, exp_id, max_demos, total_demos)
+                ##TODO uncomment below
+                #nlp_errors[i, n_demos-1] = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, max_demos, total_demos)
 
 
 
@@ -60,9 +75,11 @@ def main():
     #plot errors
     ###################
     plt.figure()
-    plt.plot(range(1,max_demos+1),np.mean(lfd_errors,0))
+    plt.plot(range(1,max_demos+1),np.mean(lfd_errors,0), 'bo-', label='lfd')
+    plt.plot(range(1,max_demos+1),np.mean(nlp_errors,0), 'go--', label='nlp+lfd')
     plt.xlabel('number of demonstrations')
     plt.ylabel('generalization L2 error')
+    plt.legend(loc='best')
     plt.show()
             
  
