@@ -23,10 +23,10 @@ class nlp():
 				if (o[3] not in groundings[word]) and (o[4] + 5 not in groundings[word]):
 					moving_objects.remove(o)
 		next = tokens[6]
-	if next == "0":
-		return
-	else:
-		return up_tree(int(next),lines, moving_objects,groundings)
+		if next == "0":
+			return
+		else:
+			return up_tree(int(next),lines, moving_objects,groundings)
 
 	def down_tree(self,line_num,lines,landmark_objects):
 		tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[,!?;:]",' ',lines[line_num-1]))]
@@ -56,7 +56,7 @@ class nlp():
 
 	def predict_goal(self,user,exp,num):
 		x = 1
-		path_to_dependencies = "data/user_"+user+"/experiment_"+exp+"/"
+		path_to_dependencies = "data/user_"+str(user)+"/experiment_"+str(exp)+"/"
 
 		for file_name in os.listdir(path_to_dependencies):
 			if file_name == "worlds.yaml":
@@ -73,19 +73,20 @@ class nlp():
 
 		spatial_location = None
 		spatial_relation = []
-		test = open(path_to_dependencies + "annotations.conllx", 'r')
+		test = open(path_to_dependencies + "annotations"+str(user)+str(exp)+".conllx", 'r')
 		lines = test.readlines()
 		for line in lines:
 			tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[.,!?;:]",' ',line))]
-			word = tokens[1].lower()
-			if word in groundings:
-				if not set(groundings[word]).isdisjoint(set(spatial_features)):
-					spatial_location = tokens[0]
-					spatial_relation = groundings[word]
-					break
+			if(tokens != []):
+				word = tokens[1].lower()
+				if word in self.groundings:
+					if not set(self.groundings[word]).isdisjoint(set(spatial_features)):
+						spatial_location = tokens[0]
+						spatial_relation = self.groundings[word]
+						break
 		if(spatial_location != None):
-			landmark_objects = down_tree(int(spatial_location),lines,landmark_objects,groundings,0)
-		#print(landmark_objects)
+			landmark_objects = down_tree(int(spatial_location),lines,landmark_objects)
+		print(landmark_objects)
 		#return([moving_objects,landmark_objects,spatial_relation])
 
 

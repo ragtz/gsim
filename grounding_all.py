@@ -70,12 +70,14 @@ class WordLearner():
 									colors_seen.append(color)
 								g.close()
 					f.close()
-				elif file_name.endswith("yaml"):
+				elif file_name.endswith("yaml"):# and file_name != "worlds.yaml":
+					print(file_name)
 					with open(self.path_to_files + "/user_" + str(user_experiment[0]) + "/experiment_" + str(user_experiment[1]) + "/" + file_name, 'r') as f:
 						displacements = yaml.load(f)
 						object_list = displacements["objects"]
+						print(object_list)
 						for o in object_list:
-							sentence = open(self.path_to_files + "/" + user_folder + "/" + experiment_folder + "/" + sentence_file, 'r')
+							sentence = open(self.path_to_files + "/user_" + str(user_experiment[0]) + "/experiment_" + str(user_experiment[1])+ "/" + sentence_file, 'r')
 							tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[.,!?;:]",' ',sentence.readline()))]
 							for word in tokens:
 								spatial_relation = o[0] + 11
@@ -91,6 +93,7 @@ class WordLearner():
 		for word in self.word_dict:
 			word = word.lower()
 			(best_feature, p_feature, p_features) = self.get_best(word, self.word_feature_dict, self.word_dict)
+			#print(word,best_feature,self.get_entropy(p_features))
 			if self.get_entropy(p_features) < threshold and p_feature > 0.5:
 				self.grounding_dict[word] = best_feature
 
