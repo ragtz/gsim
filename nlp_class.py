@@ -69,9 +69,7 @@ class nlp():
 					loc = world_files["worlds"][0]
 					with open(path_to_dependencies + "/../../" + loc, 'r') as g:
 						world = yaml.load(g)
-						task_object = [0,0] + world["task_object"]
 						object_list = world["objects"]
-						object_list.append(task_object)
 						for o in object_list:
 							landmark_objects.append(o)
 		spatial_features = [11,12,13,14,15,16,17,18,19]
