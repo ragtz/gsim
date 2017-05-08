@@ -181,13 +181,13 @@ def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_
 
 def main():
     #set up train and test
-    #train_data = [(u,e) for u in range(30) for e in range(4)]
-    #test_data = [(u,e) for u in range(30) for e in range(4,5)]
-    train_data = [(u,e) for u in range(25) for e in range(5)]
-    test_data = [(u,e) for u in range(25,30) for e in range(5)]
+    train_data = [(u,e) for u in range(30) for e in range(4)]
+    test_data = [(u,e) for u in range(30) for e in range(4,5)]
+    #train_data = [(u,e) for u in range(25) for e in range(5)]
+    #test_data = [(u,e) for u in range(25,30) for e in range(5)]
     total_demos = 10  #total number of demos possible
     max_demos = 4     #maximum number of demos given to robot to learn from
-    thresh = 200
+    thresh = 150
     
 
     ######################
@@ -222,6 +222,7 @@ def main():
       
             
             #compute accuracy over a test demo specified by demo_id
+            #TODO change to average cosine distance or euclidean...not sure how to compare these two metrics
             for demo_id in range(max_demos, total_demos):
                 lfd_errors[i, n_demos-1] = averageDistanceError(lfd_shape_color, lfd_displacement, user_id, exp_id, max_demos, total_demos)
                 nlp_errors[i, n_demos-1] = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, max_demos, total_demos)
