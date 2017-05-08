@@ -51,14 +51,14 @@ def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
     #check if we have one relation and one object
     if len(relation) == 1 and len(object_info) == 1:
         
-        print "grounding both"
+        #print "grounding both"
         #first check if nlp grounded landmark is actually a possible landmark
         nlp_shape_color = (object_info[0][3], object_info[0][4])
         yaml_file = lfd.getYamlFile(user_id, exp_id, 0)
         landmark_coord = lfd.getFeatureCoordinates(nlp_shape_color, yaml_file)
         if landmark_coord is None:
             
-            print "NLP returned invalid landmark"
+            #print "NLP returned invalid landmark"
             return lfd_shape_color, lfd_displacement
         else: #use valid landmark and displacement to guess placement location
             
@@ -71,13 +71,13 @@ def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
             return nlp_shape_color, nlp_displacement
     #check if we have only one object and can ground on that
     elif len(object_info) == 1:
-        print "grounding on object only"
+        #print "grounding on object only"
         nlp_shape_color = (object_info[0][3], object_info[0][4])
         nlp_displacement = lfd.getDisplacementFromLandmark(user_id, exp_id, n_demos, nlp_shape_color)
         return nlp_shape_color, nlp_displacement
     #if we have one relationship and multiple items, figure out which item by using relationship
     elif len(relation) == 1 and len(object_info)>0:
-        print "grounding on relation only"
+        #print "grounding on relation only"
         #get predicted displacement based on relationship
         gmm_filename = "../data/gmm_params.yaml"
         model_data = lfd.getYamlData(gmm_filename)
@@ -101,7 +101,7 @@ def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
     #fall back on pure lfd as a last resort
     else:
         
-        print "ambiguous grounding"
+        #print "ambiguous grounding"
         return lfd_shape_color, lfd_displacement
     
 
@@ -109,8 +109,8 @@ def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
 def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_demos, thresh):
     relation_offset = 11  #hard coded offset to get back to relations in range 0:8
     relation, object_info = nlp_grounder.predict_goal(user_id, exp_id, n_demos)
-    print len(relation), len(object_info)
-    print relation
+    #print len(relation), len(object_info)
+    #print relation
     #get lfd to use along with language or in place of language if ambiguous
     lfd_shape_color, lfd_displacement = lfd.getMostLikelyLandmarkDisplacement(user_id, exp_id, n_demos)
     
@@ -118,7 +118,7 @@ def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_
     grounded_prediction = False #flag to check if we think we've found a grounding
     if len(relation) == 1 and len(object_info) == 1:
         
-        print "grounding both"
+        #print "grounding both"
         #first check if nlp grounded landmark is actually a possible landmark
         nlp_shape_color = (object_info[0][3], object_info[0][4])
         yaml_file = lfd.getYamlFile(user_id, exp_id, 0)
@@ -135,14 +135,14 @@ def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_
 
     #check if we have only one object and can ground on that
     elif len(object_info) == 1:
-        print "grounding on object only"
+        #print "grounding on object only"
         nlp_shape_color = (object_info[0][3], object_info[0][4])
         nlp_displacement = lfd.getDisplacementFromLandmark(user_id, exp_id, n_demos, nlp_shape_color)
         grounded_prediction = True
 
     #if we have one relationship and multiple items, figure out which item by using relationship
     elif len(relation) == 1 and len(object_info)>0:
-        print "grounding on relation only"
+        #print "grounding on relation only"
         #get predicted displacement based on relationship
         gmm_filename = "../data/gmm_params.yaml"
         model_data = lfd.getYamlData(gmm_filename)
@@ -170,12 +170,12 @@ def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_
     if grounded_prediction:
         #check if grounding prediction seems to match what's been demonstrated
         ave_error = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, 0, n_demos+1)
-        print "ave error", ave_error
+        #print "ave error", ave_error
         if ave_error < thresh:
-            print "confident in grounding"
+            #print "confident in grounding"
             return nlp_shape_color, nlp_displacement
     #fall back on pure lfd as a last resort
-    print "ambiguous grounding"
+    #print "ambiguous grounding"
     return lfd_shape_color, lfd_displacement
 
 
