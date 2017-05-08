@@ -61,7 +61,17 @@ def getPlacementCoordinates(yaml_file, user_id, exp_id):
 
     return [float(motion_data[demo_id][-1][0]), float(motion_data[demo_id][-1][1])]
     
-    
+
+def getMeanPlacementCoordinates(user_id, experiment_id, num_demos):
+    yaml_files = getYamlFiles(user_id, experiment_id, num_demos)
+    all_placements = []
+    for yaml_f in yaml_files:
+        #print yaml_f
+        placement = getPlacementCoordinates(yaml_file, user_id, exp_id)
+        all_placements.append(np.array(placement))
+
+    return np.mean(np.array(all_placements),0)
+        
 
 """get (x,y) for each object in world"""
 def getObjectCoordinates(yaml_file):
@@ -177,6 +187,13 @@ def getMeanDisplacements(displacement_dict):
         #print displace_array.T
         displ_var[feature] = np.mean(displace_array,0)
     return displ_var
+
+
+"""given a landmark (shape,color) find average displacement from this landmark over the demos"""
+def getDisplacementFromLandmark(user_id, experiment_id, num_demos, landmark):
+    all_disp = getAllDisplacements(user_id, experiment_id, num_demos)
+    disp_mus = getMeanDisplacements(all_disp)
+    return disp_mus[landmark]
 
 """returns shape-color tuple and mean displacement vector"""
 def getMostLikelyLandmarkDisplacement(user_id, experiment_id, num_demos):

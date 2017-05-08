@@ -21,7 +21,7 @@ def learnBestMixtureModel(user_exp_tuples, num_demos):
 
     lowest_bic = np.infty
     bic = []
-    n_components_range = range(1, 15)
+    n_components_range = range(9, 10)
     cv_types = ['full']
     for cv_type in cv_types:
         for n_components in n_components_range:
@@ -38,6 +38,8 @@ def learnBestMixtureModel(user_exp_tuples, num_demos):
     #print bic
     color_iter = itertools.cycle(['navy', 'turquoise', 'cornflowerblue',
                                   'darkorange','red','green','pink','grey','purple'])
+    print "***learned", len(best_gmm.means_), "components"
+
     return best_gmm
 #    bars = []
 #    #print "fit models ............"
@@ -108,10 +110,10 @@ def labelTrainingDataDisplacements(user_exp_tuples, num_demos):
     #write model to file
     filename = "../data/gmm_params.yaml"
     writeModelToYaml(gm_model, filename)
-
+    #print "learning gmm components"
     #write displacement yaml files 
     for user_id, exp_id in user_exp_tuples:
-        print "user", user_id
+        #print "user", user_id
         for demo_id in range(num_demos):
             #find appropriate yaml file 
             yaml_file = lfd.getYamlFile(user_id, exp_id, demo_id)
@@ -122,13 +124,13 @@ def labelTrainingDataDisplacements(user_exp_tuples, num_demos):
             #label displacements
             for label in labels:
                 mixture_labels.append([int(label)])
-            print "mixture labels", mixture_labels
+            #print "mixture labels", mixture_labels
             filename = "../data/user_"+str(user_id)+"/experiment_"+ str(exp_id)+"/displacements" + str(demo_id) + ".yaml"
-            print filename
+            #print filename
             stream = file(filename, 'w')
             data = {}
             data['objects'] = mixture_labels
-            print data
+            #print data
             yaml.dump(data, stream)
     
 
