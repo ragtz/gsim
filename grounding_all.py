@@ -120,10 +120,7 @@ class WordLearner():
 		for word in self.word_dict:
 			word = word.lower()
 			(best_feature, p_feature, p_features, even_num) = self.get_best(word, self.word_feature_dict, self.word_dict)
-			if(word == "the" or word == "yellow"):
-				print(word)
-				print(p_feature)
-				print(self.get_entropy(p_features))
+
 			if self.get_entropy(p_features) <= threshold and p_feature > 0.55:
 				self.grounding_dict[word] = best_feature
 	
