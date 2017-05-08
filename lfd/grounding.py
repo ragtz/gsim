@@ -43,16 +43,17 @@ def getUnigramWorldMapping(user_exp_tuples):
         #add each word in sentence mapping to world
         for word in s.split():
             if word not in unigram_map:
-                unigram_map[word] = [w]
+                unigram_map[word] = {w}
             else:
-                unigram_map[word].append(w)
+                unigram_map[word].add(w)
     return unigram_map
     
 def getUnigramIntersections(unigram_map):
     unigram_groundings = {}
     for unigram in unigram_map:
-        invariants = unigram_map[unigram][0]
-        for world in unigram_map[unigram]:
+        world_list = list(unigram_map[unigram])
+        invariants = world_list[0]
+        for world in world_list:
             invariants = invariants.intersection(world)
         unigram_groundings[unigram] = invariants
     return unigram_groundings
@@ -179,7 +180,7 @@ def main():
         if len(unigram_groundings[u].shape_set) + len(unigram_groundings[u].color_set) + len(unigram_groundings[u].displacement_set) == 1 and len(unigram_map[u]) >= min_occur:
             print u + " = " + unigram_groundings[u].toEnglish()
 
-    print "below count", len(unigram_map['below'])
+    print "the count", len(unigram_map['the'])
 
 if __name__=="__main__":
     main()
