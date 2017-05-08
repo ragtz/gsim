@@ -6,7 +6,6 @@ This file outputs the objects  (in the yaml format) for the moving object and la
 """
 
 from grounding_all import WordLearner
-import sys
 import re
 import os
 import yaml
@@ -26,24 +25,30 @@ class nlp():
 		if next == "0":
 			return
 		else:
-			return up_tree(int(next),lines, moving_objects,groundings)
+			return self.up_tree(int(next),lines, moving_objects,groundings)
 
-	def down_tree(self,line_num,lines,landmark_objects):
+	def down_tree(self,line_num,lines,landmark_objects, depth):
+		if(len(landmark_objects) == 1):
+			return landmark_objects
 		tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[,!?;:]",' ',lines[line_num-1]))]
 		word = tokens[1]
 		hold_landmarks = list(landmark_objects)
 		if word in self.groundings and depth != 0:
+			in_scenes = False
 			for o in landmark_objects:
-				if (o[3] not in self.groundings[word]) and (o[4] + 5 not in self.groundings[word]):
-					hold_landmarks.remove(o)
+				if(o[3] in self.groundings[word] or o[4] + 5 in self.groundings[word]):
+					in_scenes = True
+					break
+			if(in_scenes):
+				for o in landmark_objects:
+					if (o[3] not in self.groundings[word]) and (o[4] + 5 not in self.groundings[word]):
+						hold_landmarks.remove(o)
 		landmark_objects = list(hold_landmarks)
-		if(len(landmark_objects) == 1):
-			return landmark_objects
 		for line in lines:
-			tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[,!?;:]",' ',line))]
+			tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[!?;:]",' ',line))]
 			if(tokens != []):
 				if int(tokens[6]) == line_num:
-					landmark_objects = down_tree(int(tokens[0]),lines,landmark_objects)
+					landmark_objects = self.down_tree(int(tokens[0]),lines,landmark_objects,depth+1)
 		return landmark_objects
 
 
@@ -55,9 +60,8 @@ class nlp():
 
 
 	def predict_goal(self,user,exp,num):
-		x = 1
 		path_to_dependencies = "data/user_"+str(user)+"/experiment_"+str(exp)+"/"
-
+		landmark_objects = []
 		for file_name in os.listdir(path_to_dependencies):
 			if file_name == "worlds.yaml":
 				with open(path_to_dependencies + "/" + file_name, 'r') as f:
@@ -68,10 +72,11 @@ class nlp():
 						task_object = [0,0] + world["task_object"]
 						object_list = world["objects"]
 						object_list.append(task_object)
-		landmark_objects = list(object_list)
+						for o in object_list:
+							landmark_objects.append(o)
 		spatial_features = [11,12,13,14,15,16,17,18,19]
-
 		spatial_location = None
+		spatial_location_fallback = None
 		spatial_relation = []
 		test = open(path_to_dependencies + "annotations"+str(user)+str(exp)+".conllx", 'r')
 		lines = test.readlines()
@@ -79,15 +84,19 @@ class nlp():
 			tokens = [t.strip() for t in re.findall(r"[\w']+|[.,!?;:]", re.sub(r"[.,!?;:]",' ',line))]
 			if(tokens != []):
 				word = tokens[1].lower()
+				if(tokens[7] == "prep" and spatial_location_fallback == None):
+					spatial_location_fallback = tokens[0]
 				if word in self.groundings:
 					if not set(self.groundings[word]).isdisjoint(set(spatial_features)):
 						spatial_location = tokens[0]
 						spatial_relation = self.groundings[word]
 						break
 		if(spatial_location != None):
-			landmark_objects = down_tree(int(spatial_location),lines,landmark_objects)
-		print(landmark_objects)
-		#return([moving_objects,landmark_objects,spatial_relation])
+			landmark_objects = self.down_tree(int(spatial_location),lines,landmark_objects,0)
+		elif(spatial_location_fallback != None):
+			landmark_objects = self.down_tree(int(spatial_location_fallback),lines,landmark_objects,0)
+		#print(landmark_objects)
+		return([spatial_relation, landmark_objects])
 
 
 

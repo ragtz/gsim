@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May  8 10:02:07 2017
+
+@author: Taylor
+"""
+
+"""
+0: circle
+1: square
+2: triangle
+3: star
+4: diamond
+5: blue
+6: red
+7: green
+8: purple
+9: yellow
+10: orange
+11: right
+12: down
+13: left
+14: none
+15: none
+16: up
+17: none
+18: on
+19: none
+20: none
+"""
