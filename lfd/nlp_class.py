@@ -53,14 +53,14 @@ class nlp():
 
 
 	def train(self,training_set):
-		path_to_files = "data/"
+		path_to_files = "../data/"
 		learner = WordLearner(path_to_files,training_set)
 		learner.ground()
 		self.groundings = learner.grounding_dict
 
 
 	def predict_goal(self,user,exp,num):
-		path_to_dependencies = "data/user_"+str(user)+"/experiment_"+str(exp)+"/"
+		path_to_dependencies = "../data/user_"+str(user)+"/experiment_"+str(exp)+"/"
 		landmark_objects = []
 		for file_name in os.listdir(path_to_dependencies):
 			if file_name == "worlds.yaml":
