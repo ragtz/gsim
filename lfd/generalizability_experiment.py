@@ -222,10 +222,11 @@ def main():
       
             
             #compute accuracy over a test demo specified by demo_id
-            #TODO change to average cosine distance or euclidean...not sure how to compare these two metrics
             for demo_id in range(max_demos, total_demos):
                 lfd_errors[i, n_demos-1] = averageDistanceError(lfd_shape_color, lfd_displacement, user_id, exp_id, max_demos, total_demos)
                 nlp_errors[i, n_demos-1] = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, max_demos, total_demos)
+                #TODO add random
+                #TODO add average baseline
 
 
 
