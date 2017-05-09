@@ -53,10 +53,11 @@ class nlp():
 
 
 	def train(self,training_set):
-		path_to_files = "data/"
-		learner = WordLearner(path_to_files,training_set)
-		learner.ground()
-		self.groundings = learner.grounding_dict
+		if(training_set != []):
+			path_to_files = "data/"
+			learner = WordLearner(path_to_files,training_set)
+			learner.ground()
+			self.groundings = learner.grounding_dict
 
 
 	def predict_goal(self,user,exp,num):
