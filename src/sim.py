@@ -1,4 +1,5 @@
 from gsim.src.model import *
+from gsim.src.controllers import *
 import numpy as np
 import pygame
 import random
@@ -221,6 +222,44 @@ class GSim(object):
                             self.model.closeGripper()
 
                 self.update()
+
+class GSimPlayback(object):
+    def __init__(self, width, height, frame, policy):
+        pygame.init()
+        self.canvas = pygame.display.set_mode((width, height))
+        self.clock = pygame.time.Clock()
+
+        self.model = GSimModel(width, height)
+        self.model.addFrameFromFile(frame)
+
+        self.policy = policy
+
+    def update(self):
+        self.canvas.fill((255,255,255))
+        self.model.draw(self.canvas)
+        pygame.display.flip()
+
+    def run(self, start, goal):
+        X = self.policy.playback(start, goal)
+        i = 0
+
+        while True:
+            self.clock.tick(50)
+
+            x, y = X[i,:]
+            if i == 0:
+                self.model.closeGripper()
+            else:
+                self.model.moveGripper(x, y)
+            
+            if i < len(X)-1:
+                i += 1
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+
+            self.update()
  
 if __name__ == '__main__':
     if len(sys.argv) >= 5:
