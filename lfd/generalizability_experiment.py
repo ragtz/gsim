@@ -6,6 +6,8 @@ from nlp_class import nlp
 
 import lfd
 import gmm
+from sklearn.model_selection import KFold
+import warnings
 
 """
 This is a simple experiment setup for testing nlp+lfd with lfd.
@@ -43,8 +45,8 @@ def averageCosineDistanceError(shape_color, displacement, user_id, exp_id, max_d
 def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
     relation_offset = 11  #hard coded offset to get back to relations in range 0:8
     relation, object_info = nlp_grounder.predict_goal(user_id, exp_id, n_demos)
-    print len(relation), len(object_info)
-    print relation
+    print(len(relation), len(object_info))
+    print(relation)
     #get lfd to use along with language or in place of language if ambiguous
     lfd_shape_color, lfd_displacement = lfd.getMostLikelyLandmarkDisplacement(user_id, exp_id, n_demos)
     
@@ -180,63 +182,96 @@ def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_
 
 
 def main():
+    warnings.filterwarnings("ignore")
     #set up train and test
-    train_data = [(u,e) for u in range(30) for e in range(4)]
-    test_data = [(u,e) for u in range(30) for e in range(4,5)]
+    #train_data = [(u,e) for u in range(30) for e in range(1,4)]
+    #test_data = [(u,e) for u in range(30) for e in range(4,5)]
     #train_data = [(u,e) for u in range(25) for e in range(5)]
     #test_data = [(u,e) for u in range(25,30) for e in range(5)]
+    data = []
+    sub_user = []
+    for u in range(30):
+        for e in range(5):
+            if(u%2 == 1 or e != 0):
+                sub_user.append((u,e))
+        if(u%2 == 1):
+            data.append(sub_user)
+            sub_user = []
+
     total_demos = 10  #total number of demos possible
     max_demos = 4     #maximum number of demos given to robot to learn from
-    thresh = 150
-    
-
+    thresh = 125
     ######################
     #training code here
     ######################
-
-    #TODO learn the gmm componenets and label the data
-    print "--learning gmm components--"
-    gmm.labelTrainingDataDisplacements(train_data, total_demos)
-
-    #learn groundings with training data
-    print "--grounding language--"
-    nlp_grounder = nlp()
-    nlp_grounder.train(train_data)
-
-    ######################
-    #testing code
-    ######################
-    print "--testing generalization error--"
-    #matrix of zeros where each row is new test case and cols are ave errors for learning from 1:max_demos demonstrations
-    lfd_errors = np.zeros((len(test_data), max_demos))  
-    nlp_errors = np.zeros((len(test_data), max_demos))  
-    for i in range(len(test_data)):
-        user_id, exp_id = test_data[i]
-        for n_demos in range(1,max_demos+1):
-            #get best guess of landmark and displacement using pure LfD
-            lfd_shape_color, lfd_displacement = lfd.getMostLikelyLandmarkDisplacement(user_id, exp_id, n_demos)
-            
-            #guess landmark and displacement using pure NLP
-            nlp_shape_color, nlp_displacement = getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_demos, thresh)
-            #print nlp_shape_color, nlp_displacement
-      
-            
-            #compute accuracy over a test demo specified by demo_id
-            for demo_id in range(max_demos, total_demos):
-                lfd_errors[i, n_demos-1] = averageDistanceError(lfd_shape_color, lfd_displacement, user_id, exp_id, max_demos, total_demos)
-                nlp_errors[i, n_demos-1] = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, max_demos, total_demos)
-                #TODO add random
-                #TODO add average baseline
+    num_folds = 10#len(data)
+   #kf = KFold(n=len(data),n_folds=num_folds)
+    kf = KFold(n_splits=num_folds)
+    #for all folds
+    all_lfd_errors = []
+    all_nlp_errors = []
+    count = 0
+    for train,test in kf.split(data):#kf:
+        count = count + 1
+        print("Cross validation round " + str(count))
+        train_data =[]
+        test_data = []
+        for i in train:
+            train_data = train_data + data[i]
+        for i in test:
+            test_data = test_data + data[i]
 
 
-
+        #TODO learn the gmm componenets and label the data
+        print( "--learning gmm components--")
+        gmm.labelTrainingDataDisplacements(train_data, total_demos)
+    
+        #learn groundings with training data
+        print( "--grounding language--")
+        nlp_grounder = nlp()
+        nlp_grounder.train(train_data)
+    
+        ######################
+        #testing code
+        ######################
+        print( "--testing generalization error--")
+        #matrix of zeros where each row is new test case and cols are ave errors for learning from 1:max_demos demonstrations
+        lfd_errors = np.zeros((len(test_data), max_demos))  
+        nlp_errors = np.zeros((len(test_data), max_demos))  
+        for i in range(len(test_data)):
+            user_id, exp_id = test_data[i]
+            for n_demos in range(1,max_demos+1):
+                #get best guess of landmark and displacement using pure LfD
+                lfd_shape_color, lfd_displacement = lfd.getMostLikelyLandmarkDisplacement(user_id, exp_id, n_demos)
+                
+                #guess landmark and displacement using pure NLP
+                nlp_shape_color, nlp_displacement = getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_demos, thresh)
+                #print nlp_shape_color, nlp_displacement
+          
+                
+                #compute accuracy over a test demo specified by demo_id
+                for demo_id in range(max_demos, total_demos):
+                    lfd_errors[i, n_demos-1] = averageDistanceError(lfd_shape_color, lfd_displacement, user_id, exp_id, max_demos, total_demos)
+                    nlp_errors[i, n_demos-1] = averageDistanceError(nlp_shape_color, nlp_displacement, user_id, exp_id, max_demos, total_demos)
+                    #TODO add random
+                    #TODO add average baseline
+        all_lfd_errors.append(lfd_errors)
+        all_nlp_errors.append(nlp_errors)
     ###################
     #plot errors
     ###################
-    print "lfd"
-    print lfd_errors
-    print "nlp"
-    print nlp_errors
+    lfd_errors = np.zeros((len(test_data), max_demos))  
+    nlp_errors = np.zeros((len(test_data), max_demos)) 
+    for validation_error in all_lfd_errors:
+        lfd_errors = np.add(lfd_errors, validation_error)
+    lfd_errors = np.divide(lfd_errors,num_folds)
+    for validation_error in all_nlp_errors:
+        nlp_errors = np.add(nlp_errors, validation_error)
+    nlp_errors = np.divide(nlp_errors,num_folds)
+    print( "lfd")
+    print( lfd_errors)
+    print( "nlp")
+    print( nlp_errors)
     yerr = 10
     plt.figure()
     plt.errorbar(range(1,max_demos+1),np.mean(lfd_errors,0), yerr=np.std(lfd_errors,0), fmt='bo-', label='lfd')
