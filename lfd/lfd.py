@@ -5,7 +5,7 @@ import random
 
 
 def getRandomPointOnTable(user_id, exp_id, n_demos):
-    yaml_file = lfd.getYamlFile(user_id, exp_id, 0)
+    yaml_file = getYamlFile(user_id, exp_id, 0)
     x,y,w,h = getTableTopDimensions(yaml_file)
     return [random.randint(x,x+w), random.randint(y,y+h)]
     
@@ -74,12 +74,12 @@ def getPlacementCoordinates(yaml_file, user_id, exp_id):
     return [float(motion_data[demo_id][-1][0]), float(motion_data[demo_id][-1][1])]
     
 
-def getMeanPlacementCoordinates(user_id, experiment_id, num_demos):
-    yaml_files = getYamlFiles(user_id, experiment_id, num_demos)
+def getMeanPlacementCoordinates(user_id, exp_id, num_demos):
+    yaml_files = getYamlFiles(user_id, exp_id, num_demos)
     all_placements = []
     for yaml_f in yaml_files:
         #print yaml_f
-        placement = getPlacementCoordinates(yaml_file, user_id, exp_id)
+        placement = getPlacementCoordinates(yaml_f, user_id, exp_id)
         all_placements.append(np.array(placement))
 
     return np.mean(np.array(all_placements),0)

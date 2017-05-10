@@ -17,11 +17,9 @@ This is a simple experiment setup for testing nlp+lfd with lfd.
 
 
 def main():
-    #set up train and test
-    train_data = [(u,e) for u in range(30) for e in range(4)]
-    test_data = [(u,e) for u in range(30) for e in range(4,5)]
-    #train_data = [(u,e) for u in range(25) for e in range(5)]
-    #test_data = [(u,e) for u in range(25,30) for e in range(5)]
+    #train on first 25 users over all experiments and test on last 5 over all experiments
+    train_data = [(u,e) for u in range(25) for e in range(5)]
+    test_data = [(u,e) for u in range(25,30) for e in range(5)]
     total_demos = 10  #total number of demos possible
     max_demos = 4     #maximum number of demos given to robot to learn from (the rest are used to test generalizabiltiy)
     thresh = 150
@@ -48,6 +46,7 @@ def main():
     lfd_errors = np.zeros((len(test_data), max_demos))  
     nlp_errors = np.zeros((len(test_data), max_demos)) 
     random_errors = np.zeros((len(test_data), max_demos)) 
+    aveplace_errors = np.zeros((len(test_data), max_demos)) 
     for i in range(len(test_data)):
         user_id, exp_id = test_data[i]
         for n_demos in range(1,max_demos+1):
@@ -59,7 +58,7 @@ def main():
             #guess placment randomly
             rand_placement = lfd.getRandomPointOnTable(user_id, exp_id, n_demos)
             #guess placement as average of demonstrated placements
-            ave_placment = lfd.getMeanPlacementCoordinates(user_id, exp_id, num_demos)
+            ave_placement = lfd.getMeanPlacementCoordinates(user_id, exp_id, n_demos)
       
             
             #compute accuracy over a test demo specified by demo_id
@@ -71,7 +70,7 @@ def main():
                 #random baseline error
                 random_errors[i, n_demos-1] = nlp_lfd.averageDistanceToPointError(rand_placement, user_id, exp_id, max_demos, total_demos)
                 #average placement pos baseline error
-                aveplace_erros[i, n_demos-1] = nlp_lfd.averageDistanceToPointError(ave_placement, user_id, exp_id, max_demos, total_demos)
+                aveplace_errors[i, n_demos-1] = nlp_lfd.averageDistanceToPointError(ave_placement, user_id, exp_id, max_demos, total_demos)
 
 
 
@@ -85,9 +84,9 @@ def main():
     yerr = 10
     plt.figure()
     plt.errorbar(range(1,max_demos+1),np.mean(lfd_errors,0), yerr=np.std(lfd_errors,0), fmt='bo-', label='lfd')
-    plt.errorbar(range(1,max_demos+1),np.mean(nlp_errors,0), yerr=np.std(nlp_errors,0), fmt='go--', label='nlp+lfd')
-    plt.errorbar(range(1,max_demos+1),np.mean(random_errors,0), yerr=np.std(random_errors,0), fmt='ro-.', label='random')
-    plt.errorbar(range(1,max_demos+1),np.mean(aveplace_errors,0), yerr=np.std(aveplace_errors,0), fmt='ko', linestyle='dotted', label='nlp+lfd')
+    plt.errorbar(range(1,max_demos+1),np.mean(nlp_errors,0), yerr=np.std(nlp_errors,0), fmt='g^--', label='nlp+lfd')
+    plt.errorbar(range(1,max_demos+1),np.mean(random_errors,0), yerr=np.std(random_errors,0), fmt='r*-.', label='random')
+    plt.errorbar(range(1,max_demos+1),np.mean(aveplace_errors,0), yerr=np.std(aveplace_errors,0), fmt='ks', linestyle='dotted', label='ave. placement')
     plt.xticks(range(1,max_demos+1))
     plt.xlabel('number of demonstrations')
     plt.ylabel('generalization L2 error')
