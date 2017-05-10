@@ -1,8 +1,20 @@
 import yaml
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 
+def getRandomPointOnTable(user_id, exp_id, n_demos):
+    yaml_file = lfd.getYamlFile(user_id, exp_id, 0)
+    x,y,w,h = getTableTopDimensions(yaml_file)
+    return [random.randint(x,x+w), random.randint(y,y+h)]
+    
+
+def getTableTopDimensions(yaml_file):
+    data = getYamlData(yaml_file)
+    #get table: [100, 100, 800]
+    table = data['table']
+    return table[0], table[1], table[2], table[2]
 
 def getYamlFiles(user_id, experiment_id, num):
     #get worlds.yaml file
