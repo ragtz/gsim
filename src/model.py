@@ -1,6 +1,7 @@
 import pygame
 import yaml
 import numpy as np
+from copy import deepcopy
 
 class Shape(object):
     def __init__(self, x=None, y=None, w=None, c=None):
@@ -281,6 +282,21 @@ class Frame(object):
         #if self.active:
         #    self.gripper.draw(canvas)
 
+    def drawMotion(self, canvas):
+        self.table.draw(canvas)
+        self.stage.draw(canvas)
+        
+        for obj in self.objs:
+            obj.draw(canvas)
+
+        self.target.draw(canvas)
+
+        motion = deepcopy(self.motion)
+        for x, y in motion:
+            self.activate()
+            self.moveGripper(x, y)
+            self.tobj.draw(canvas)
+
 
 class GSimModel(object):
     def __init__(self, w, h):
@@ -384,4 +400,7 @@ class GSimModel(object):
                 
     def draw(self, canvas):
         self.getCurrentFrame().draw(canvas)
+
+    def drawMotion(self, canvas):
+        self.getCurrentFrame().drawMotion(canvas)
 

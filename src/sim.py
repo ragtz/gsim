@@ -239,11 +239,17 @@ class GSimPlayback(object):
         self.model.draw(self.canvas)
         pygame.display.flip()
 
+    def drawMotion(self):
+        self.canvas.fill((255,255,255))
+        self.model.drawMotion(self.canvas)
+        pygame.display.flip()
+
     def run(self, start, goal):
         X = self.policy.playback(start, goal)
         i = 0
 
-        while True:
+        for j in range(len(X)):
+        #while True:
             self.clock.tick(50)
 
             x, y = X[i,:]
@@ -260,6 +266,13 @@ class GSimPlayback(object):
                     sys.exit()
 
             self.update()
+
+        self.drawMotion()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
  
 if __name__ == '__main__':
     if len(sys.argv) >= 5:
