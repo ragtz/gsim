@@ -212,6 +212,8 @@ class Frame(object):
             raise Exception("Object is outside frame")
 
     def moveGripper(self, x, y):
+        x = int(round(x))
+        y = int(round(y))
         if self.active:
             self.gripper.setPosition(x, y)
 

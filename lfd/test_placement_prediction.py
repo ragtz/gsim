@@ -8,8 +8,8 @@ import nlp_lfd
 
 
 user_id = 26      #user to test on 
-exp_id = 1        #experiment id to test on 
-num_demos = 5     #train on demos in range(0,num_demos)
+exp_id = 0        #experiment id to test on 
+num_demos = 1     #train on demos in range(0,num_demos)
 test_demo_id = 5  #demonstration id for testing, any number in range(num_demos,10)
 train_data = [(u,e) for u in range(25) for e in range(5)]  #training data for nlp system, this trains on first 25 users for all experiments
 
