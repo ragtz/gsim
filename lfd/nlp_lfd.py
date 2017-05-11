@@ -116,6 +116,29 @@ def getNLP_LfD_LandmarkDisplacement(nlp_grounder, user_id, exp_id, n_demos):
         return lfd_shape_color, lfd_displacement
     
 
+def getPredictedPlacementLocation(train_data, user_id, exp_id, num_demos, test_demo_id):
+    thresh = 125
+    #learn gmm
+    print( "--learning gmm components--")
+    gmm.labelTrainingDataDisplacements(train_data, 10)
+
+    #learn groundings with training data
+    print( "--grounding language--")
+    nlp_grounder = nlp()
+    nlp_grounder.train(train_data)
+    
+    print( "--generating placement position--")
+    nlp_landmark, nlp_displacement = getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, num_demos, thresh)
+    yaml_file = lfd.getYamlFile(user_id, exp_id, test_demo_id)
+    landmark_coord = lfd.getFeatureCoordinates(nlp_landmark, yaml_file)
+    #print "landmark", landmark, landmark_coord
+    #print "displacement", disp_mus[landmark]
+    pos = np.round(np.array(landmark_coord) + np.array(nlp_displacement))
+
+    return pos.tolist()
+
+
+
 """double check the grounded language against the actual demonstrations to see if it makes sense"""
 def getNLP_LfD_LandmarkDisplacementDoubleCheck(nlp_grounder, user_id, exp_id, n_demos, thresh):
     relation_offset = 11  #hard coded offset to get back to relations in range 0:8

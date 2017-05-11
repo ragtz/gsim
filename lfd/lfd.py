@@ -239,6 +239,36 @@ def getYamlData(yaml_filename):
             print exc 
             sys.exit()
     return world
+
+"""returns [x,y] list"""
+def getPredictedPlacementLocation(user_id, exp_id, num_demos, test_demo_id):
+    #calc displacements
+    all_disp = getAllDisplacements(user_id, exp_id, num_demos)
+    tot_vars = getTotalVariances(all_disp)  
+    min_var = float("inf")
+    for feature in tot_vars:
+        if tot_vars[feature] < min_var:
+            landmark = feature
+            min_var = tot_vars[feature]
+    disp_mus = getMeanDisplacements(all_disp)  
+    yaml_file = getYamlFile(user_id, exp_id, test_demo_id)
+    landmark_coord = getFeatureCoordinates(landmark, yaml_file)
+    #print "landmark", landmark, landmark_coord
+    #print "displacement", disp_mus[landmark]
+    pos = np.round(np.array(landmark_coord) + np.array(disp_mus[landmark]))
+    return pos.tolist()
+
+def getYamlData(yaml_filename):
+    #how to open a yaml file
+    with open(yaml_filename, 'r') as stream:
+        try:
+            world = yaml.load(stream)
+            #print world
+        except yaml.YAMLError as exc:
+            print exc 
+            sys.exit()
+    return world
+
     
 """return all displacements from all files in world_files
    in one big 2-d array with each row a displacement [x,y]
