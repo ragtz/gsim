@@ -242,20 +242,28 @@ def getYamlData(yaml_filename):
 
 """returns [x,y] list"""
 def getPredictedPlacementLocation(user_id, exp_id, num_demos, test_demo_id):
-    #calc displacements
-    all_disp = getAllDisplacements(user_id, exp_id, num_demos)
-    tot_vars = getTotalVariances(all_disp)  
-    min_var = float("inf")
-    for feature in tot_vars:
-        if tot_vars[feature] < min_var:
-            landmark = feature
-            min_var = tot_vars[feature]
-    disp_mus = getMeanDisplacements(all_disp)  
+    if num_demos == 1:
+        #just pick randomly since all have zero variance
+        all_disp = getAllDisplacements(user_id, exp_id, num_demos)
+        fkeys = [f for f in all_disp]
+        landmark = fkeys[np.random.randint(len(fkeys))]
+        displacement = all_disp[landmark]
+    else:
+        #calc displacements
+        all_disp = getAllDisplacements(user_id, exp_id, num_demos)
+        tot_vars = getTotalVariances(all_disp)  
+        min_var = float("inf")
+        for feature in tot_vars:
+            if tot_vars[feature] < min_var:
+                landmark = feature
+                min_var = tot_vars[feature]
+        disp_mus = getMeanDisplacements(all_disp)  
+        displacement = disp_mus[landmark]
     yaml_file = getYamlFile(user_id, exp_id, test_demo_id)
     landmark_coord = getFeatureCoordinates(landmark, yaml_file)
     #print "landmark", landmark, landmark_coord
     #print "displacement", disp_mus[landmark]
-    pos = np.round(np.array(landmark_coord) + np.array(disp_mus[landmark]))
+    pos = np.round(np.array(landmark_coord) + np.array(displacement))
     return pos.tolist()
 
 def getYamlData(yaml_filename):
